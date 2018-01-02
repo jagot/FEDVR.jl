@@ -6,3 +6,87 @@
 [[https://coveralls.io/github/jagot/FEDVR.jl?branch=master][https://coveralls.io/repos/jagot/FEDVR.jl/badge.svg?branch=master&service=github]]
 [[http://codecov.io/github/jagot/FEDVR.jl?branch=master][http://codecov.io/github/jagot/FEDVR.jl/coverage.svg?branch=master]]
 
+#+PROPERTY: header-args:julia :session *julia-README*
+
+This is a Julia package for the Finite-Element Discrete Variable
+Representation method, used in the solution of partial differential
+equations.
+
+* Usage
+  #+BEGIN_SRC julia :exports code
+    using FEDVR
+  #+END_SRC
+
+  #+RESULTS:
+  : nothing
+
+  #+BEGIN_SRC julia :exports none
+    using Plots
+    gr()
+  #+END_SRC
+
+  #+RESULTS:
+  : kinop
+
+  We set up the basis for the calculations like so:
+  #+BEGIN_SRC julia :exports both :results verbatim
+    basis = FEDVR.Basis(0:3,10)
+  #+END_SRC
+
+  #+RESULTS:
+  : FEDVR Basis(FEDVR Grid with 3 elements of order 10 [dirichlet0,dirichlet0])
+  By default, Dirichlet0 boundary conditions at both boundaries are
+  assumed (by passing any other symbol than =:dirichlet0=, Dirichlet1
+  boundary conditions are applied; Neumann boundary conditions not yet
+  supported).
+
+  We can then plot the grid point locations:
+  #+BEGIN_SRC julia :exports code
+  plot(basis.grid)
+  #+END_SRC
+
+  #+RESULTS:
+  : Plot{Plots.GRBackend() n=1}
+
+  #+BEGIN_SRC julia :exports results :results file
+  savefig("figures/grid.svg")
+  "figures/grid.svg"
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:figures/grid.svg]]
+
+
+
+  as well as the basis functions:
+  #+BEGIN_SRC julia :exports code
+  plot(basis)
+  #+END_SRC
+
+  #+RESULTS:
+  : Plot{Plots.GRBackend() n=28}
+
+  #+BEGIN_SRC julia :exports results :results file
+  savefig("figures/basis.svg")
+  "figures/basis.svg"
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:figures/basis.svg]]
+
+* References
+  - Rescigno, T. N., & McCurdy, C. W. (2000). Numerical grid methods for
+    quantum-mechanical scattering problems. Physical Review A, 62(3),
+    032706. http://dx.doi.org/10.1103/physreva.62.032706
+
+  - McCurdy, C. W., Baertschy, M., & Rescigno, T. N. (2004). Solving the
+    three-body coulomb breakup problem using exterior complex
+    scaling. Journal of Physics B: Atomic, Molecular and Optical
+    Physics, 37(17),
+    137–187. http://dx.doi.org/10.1088/0953-4075/37/17/r01
+
+  - Balzer, K., Bauch, S., & Bonitz, M. (2010). Finite elements and the
+    discrete variable representation in nonequilibrium green’s function
+    calculations. atomic and molecular models. Journal of Physics:
+    Conference Series, 220(1),
+    012020. http://dx.doi.org/10.1088/1742-6596/220/1/012020

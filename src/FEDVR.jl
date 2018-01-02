@@ -1,5 +1,9 @@
 module FEDVR
 
-# package code goes here
+using RecipesBase
+
+include("grid.jl")
+include("basis.jl")
+include("derivatives.jl")
 
 end # module
