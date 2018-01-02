@@ -1,0 +1,8 @@
+#+TITLE: FEDVR.jl
+#+AUTHOR: Stefanos Carlström
+#+EMAIL: stefanos.carlstrom@gmail.com
+
+[[https://travis-ci.org/jagot/FEDVR.jl][https://travis-ci.org/jagot/FEDVR.jl.svg?branch=master]]
+[[https://coveralls.io/github/jagot/FEDVR.jl?branch=master][https://coveralls.io/repos/jagot/FEDVR.jl/badge.svg?branch=master&service=github]]
+[[http://codecov.io/github/jagot/FEDVR.jl?branch=master][http://codecov.io/github/jagot/FEDVR.jl/coverage.svg?branch=master]]
+
