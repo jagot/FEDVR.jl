@@ -6,16 +6,9 @@ function eval_base_ders(grid::Grid)
     L′ = zeros(elcount(grid), n, n)
     for i = elems(grid)
         sel = (1:n) + (i-1)*(n-1)
-        eval_base_ders_element!(grid.X[i,:], grid.W[i,:],
-                                view(L′, i, :, :))
+        lagrangeder!(grid.X[i,:], grid.W[i,:],
+                     view(L′, i, :, :))
     end
-    # if grid.bl == :dirichlet0
-    #     L′[1,:,1] = 0
-    # end
-    # if grid.br == :dirichlet0
-    #     L′[end,:,end] = 0
-    # end
-
     L′
 end
 
@@ -24,7 +17,6 @@ function derop(basis::Basis, a, b)
         error("Can only calculate derivative operators of orders 0–2!")
 
     g = basis.grid
-    # l = basecount(base.grid)
     elrange = elems(g)
     n = order(g)
 
@@ -46,11 +38,17 @@ function derop(basis::Basis, a, b)
         d̃el = d̃[i]
         for m = 1:n
             fm = fael[m,:]
-            for mp = 1:n
-                fmp = fbel[mp,:]
-                d̃el[m,mp] = dot(fm,fmp.*basis.grid.W[i,:])
+            for m′ = 1:n
+                fm′ = fbel[m′,:]
+                d̃el[m,m′] = dot(fm,fm′.*basis.grid.W[i,:])
             end
         end
+    end
+    for i = 2:elcount(g)
+        d̃⁻ = d̃[i-1][end,end]
+        d̃⁺ = d̃[i][1,1]
+        d̃[i-1][end,end] += d̃⁺
+        d̃[i][1,1] += d̃⁻
     end
     indices,d̃
 end
@@ -60,12 +58,6 @@ function derop(basis::Basis,o)
     b = o - a
     derop(basis::Basis,a,b)
 end
-
-#=
-\[\tilde{t}^i_{mm'} =
-\sum_{m''} \d{f^i_m(m'')}{x} \d{f^i_{m'}(m'')}{x} w^i_{m''}\]
-=#
-
 
 function kinop(basis::Basis)
     g = basis.grid
@@ -77,8 +69,8 @@ function kinop(basis::Basis)
         Tel = T[i]
         t̃el = t̃[i]
         for m = 1:n
-            for mp = 1:n
-                Tel[m,mp] = 0.5t̃el[m,mp]/sqrt(g.W[i,m]*g.W[i,mp])
+            for m′ = 1:n
+                Tel[m,m′] = 0.5g.N[i,m]*g.N[i,m′]*t̃el[m,m′]
             end
         end
     end
