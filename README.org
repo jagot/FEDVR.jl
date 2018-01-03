@@ -121,6 +121,21 @@ its usefulness is not limited to this equation.
    #+RESULTS:
    [[file:figures/eigenstates.svg]]
 
+   If we plot the eigenvalues, we see the typical quadratic behaviour
+   initially, but due to the division into finite elements, a series
+   of steps occurs towards higher energies.
+   #+BEGIN_SRC julia :exports results :results file
+     λ = eigs(T,which=:SR,nev=100)[1];
+     p = plot(layout=2, leg=false, xlabel="Eigenvalue #")
+     plot!(p[1], real.(λ[1:45]))
+     plot!(p[2], real.(λ))
+     savefig("figures/eigenvalues.svg")
+     "figures/eigenvalues.svg"
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:figures/eigenvalues.svg]]
+
 
 * Wishes
   - Efficiently calculate matrix elements for
