@@ -74,19 +74,51 @@ equations.
   #+RESULTS:
   [[file:figures/basis.svg]]
 
+* Wishes
+  - Efficiently calculate matrix elements for
+    - Local operators
+    - Derivative operators
+    - Two-body operators
+  - Allow different polynomial orders n in different finite elements
+  - Helper routines for different types of grids
+    - Cartesian Nd grids
+    - Spherical coordinates
+      - Radial grid
+      - Angular? [c.f. [[Schneider2016]]]
+  - Tensor product bases (multi-body problems)
+  - Laplacian operators
+  - Exterior Complex Scaling [c.f. [[Rescigno2000]]]
+  - Support for different quadratures [c.f. [[Baye2015]]]
+
 * References
-  - Rescigno, T. N., & McCurdy, C. W. (2000). Numerical grid methods for
-    quantum-mechanical scattering problems. Physical Review A, 62(3),
-    032706. http://dx.doi.org/10.1103/physreva.62.032706
+  1) <<Rescigno2000>>Rescigno, T. N., & McCurdy,
+     C. W. (2000). Numerical grid methods for quantum-mechanical
+     scattering problems. Physical Review A, 62(3), 032706.
+     DOI: [[http://dx.doi.org/10.1103/physreva.62.032706][10.1103/physreva.62.032706]]
 
-  - McCurdy, C. W., Baertschy, M., & Rescigno, T. N. (2004). Solving the
-    three-body coulomb breakup problem using exterior complex
-    scaling. Journal of Physics B: Atomic, Molecular and Optical
-    Physics, 37(17),
-    137–187. http://dx.doi.org/10.1088/0953-4075/37/17/r01
+  2) <<McCurdy2001>>McCurdy, C. W., Horner, D. A., & Rescigno,
+     T. N. (2001). Practical calculation of amplitudes for
+     electron-impact ionization. Physical Review A, 63(2), 022711.
+     DOI: [[http://dx.doi.org/10.1103/physreva.63.022711][10.1103/physreva.63.022711]]
 
-  - Balzer, K., Bauch, S., & Bonitz, M. (2010). Finite elements and the
-    discrete variable representation in nonequilibrium green’s function
-    calculations. atomic and molecular models. Journal of Physics:
-    Conference Series, 220(1),
-    012020. http://dx.doi.org/10.1088/1742-6596/220/1/012020
+  3) <<McCurdy2004>>McCurdy, C. W., Baertschy, M., & Rescigno,
+     T. N. (2004). Solving the three-body coulomb breakup problem using
+     exterior complex scaling. Journal of Physics B: Atomic, Molecular
+     and Optical Physics, 37(17), 137–187.
+     DOI: [[http://dx.doi.org/10.1088/0953-4075/37/17/r01][10.1088/0953-4075/37/17/r01]]
+
+  4) <<Balzer2010>>Balzer, K., Bauch, S., & Bonitz, M. (2010). Finite
+     elements and the discrete variable representation in
+     nonequilibrium green’s function calculations. atomic and molecular
+     models. Journal of Physics: Conference Series, 220(1), 012020.
+     DOI: [[http://dx.doi.org/10.1088/1742-6596/220/1/012020][10.1088/1742-6596/220/1/012020]]
+
+  5) <<Baye2015>>Baye, D. (2015). The Lagrange-mesh method. Physics
+     Reports, 565, 1–107.  DOI: [[http://dx.doi.org/10.1016/j.physrep.2014.11.006][10.1016/j.physrep.2014.11.006]]
+
+  6) <<Schneider2016>>Schneider, B. I., Guan, X., & Bartschat,
+     K. (2016). Time propagation of partial differential equations
+     using the Short Iterative Lanczos method and finite-element
+     discrete variable representation. Advances in Quantum Chemistry, 72, 95–127.
+     DOI: [[http://dx.doi.org/10.1016/bs.aiq.2015.12.002][10.1016/bs.aiq.2015.12.002]]
+
