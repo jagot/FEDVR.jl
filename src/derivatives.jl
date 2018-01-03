@@ -1,3 +1,5 @@
+using BlockMaps
+
 "Kronecker δ function"
 δ(a,b) = a == b ? 1 : 0
 
@@ -40,7 +42,7 @@ end
 function derop(basis::Basis, a, b)
     (a ∉ [0,1] || b ∉ [0,1]) &&
         error("Can only calculate derivative operators of orders 0–2!")
-    
+
     N,n = size(basis.grid)
     l = (N-1)*n - (N-2)
 
@@ -50,13 +52,16 @@ function derop(basis::Basis, a, b)
     end
     fa = a == 1 ? basis.f′ : f0
     fb = b == 1 ? basis.f′ : f0
-    
-    d̃ = spzeros(l,l)
+
+    d̃ = [zeros(n,n) for i = 1:N-1]
+    indices = Tuple{Integer,Integer}[]
     for i = 1:N-1
+        ii = (i-1)*(n-1)+1
+        push!(indices, (ii,ii))
         sel = (1:n) + (i-1)*(n-1)
         fael = view(fa, i, :, :)
         fbel = view(fb, i, :, :)
-        d̃el = view(d̃, sel, sel)
+        d̃el = d̃[i]
         for m = 1:n
             fm = fael[m,:]
             for mp = 1:n
@@ -65,7 +70,7 @@ function derop(basis::Basis, a, b)
             end
         end
     end
-    d̃
+    indices,d̃
 end
 
 function derop(basis::Basis,o)
@@ -75,7 +80,7 @@ function derop(basis::Basis,o)
 end
 
 #=
-\[\tilde{t}^i_{mm'} = 
+\[\tilde{t}^i_{mm'} =
 \sum_{m''} \d{f^i_m(m'')}{x} \d{f^i_{m'}(m'')}{x} w^i_{m''}\]
 =#
 
@@ -83,17 +88,28 @@ end
 function kinop(basis::Basis)
     g = basis.grid
     N,n = size(g)
-    t̃ = derop(basis,2)
-    T = spzeros(size(t̃)...)
+    indices,t̃ = derop(basis,2)
+    T = [zeros(n,n) for i = 1:N-1]
     for i = 1:N-1
-        sel = (1:n) + (i-1)*(n-1)
-        Tel = view(T, sel, sel)
-        t̃el = view(t̃, sel, sel)
+        Tel = T[i]
+        t̃el = t̃[i]
         for m = 1:n
             for mp = 1:n
                 Tel[m,mp] = 0.5t̃el[m,mp]/sqrt(g.W[i,m]*g.W[i,mp])
             end
         end
     end
-    T
+
+    if g.bl == :dirichlet0
+        T[1][:,1] = 0
+        T[1][1,:] = 0
+    end
+    if g.br == :dirichlet0
+        T[end][:,end] = 0
+        T[end][end,:] = 0
+    end
+
+    BlockMap(indices,T,
+             clear_overlaps=true,
+             overlap_tol=1e-8)
 end
