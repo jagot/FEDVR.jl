@@ -21,10 +21,10 @@ function eval_base_ders_element!(xⁱ::AbstractVector, wⁱ::AbstractVector,
 end
 
 function eval_base_ders(grid::Grid)
-    N,n = size(grid)
+    n = order(grid)
 
-    f′ = zeros(N-1, n, n)
-    for i = 1:N-1
+    f′ = zeros(elcount(grid), n, n)
+    for i = elems(grid)
         sel = (1:n) + (i-1)*(n-1)
         eval_base_ders_element!(grid.X[i,:], grid.W[i,:],
                                 view(f′, i, :, :))
@@ -43,19 +43,21 @@ function derop(basis::Basis, a, b)
     (a ∉ [0,1] || b ∉ [0,1]) &&
         error("Can only calculate derivative operators of orders 0–2!")
 
-    N,n = size(basis.grid)
-    l = (N-1)*n - (N-2)
+    g = basis.grid
+    # l = basecount(base.grid)
+    elrange = elems(g)
+    n = order(g)
 
-    f0 = zeros(N-1, n, n)
-    for i = 1:N-1
+    f0 = zeros(elcount(g), n, n)
+    for i = elrange
         f0[i,:,:] = speye(n)
     end
     fa = a == 1 ? basis.f′ : f0
     fb = b == 1 ? basis.f′ : f0
 
-    d̃ = [zeros(n,n) for i = 1:N-1]
+    d̃ = [zeros(n,n) for i = elrange]
     indices = Tuple{Integer,Integer}[]
-    for i = 1:N-1
+    for i = elrange
         ii = (i-1)*(n-1)+1
         push!(indices, (ii,ii))
         sel = (1:n) + (i-1)*(n-1)
@@ -87,10 +89,11 @@ end
 
 function kinop(basis::Basis)
     g = basis.grid
-    N,n = size(g)
+    n = order(g)
+    elrange = elems(g)
     indices,t̃ = derop(basis,2)
-    T = [zeros(n,n) for i = 1:N-1]
-    for i = 1:N-1
+    T = [zeros(n,n) for i = elrange]
+    for i = elrange
         Tel = T[i]
         t̃el = t̃[i]
         for m = 1:n

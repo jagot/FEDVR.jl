@@ -39,33 +39,23 @@ function lagrange(xⁱ::AbstractVector, m::Integer, x)
     Lₘ
 end
 
-function eval_element!(xⁱ, wⁱ, wa, wb,
-                       x, χ)
+function eval_element!(xⁱ, Nⁱ, x, χ)
     n = length(xⁱ)
     for m in 1:n
         Lₘ = lagrange(xⁱ, m, x)
-        χ[:,m] = Lₘ /
-            if m in 2:n-1
-                sqrt(wⁱ[m])
-            elseif m == 1
-                sqrt(wa+wⁱ[1])
-            else
-                sqrt(wⁱ[end]+wb)
-            end
+        χ[:,m] = Nⁱ[m]*Lₘ
     end
 end
 
 function evaluate!(basis::Basis, x::AbstractVector, χ::AbstractMatrix)
     g = basis.grid
-    N,n = size(g)
+    n = order(g)
 
     sel = 1:1
-    for i in 1:N-1
+    for i in elems(g)
         sel = find_interval(g.X, x, i, sel)
-        eval_element!(g.X[i,:], g.W[i,:],
-                      i > 1 ? g.W[i-1,end] : 0,
-                      i < N-1 ? g.W[i+1,1] : 0,
-                      x[sel], view(χ, sel, (1:n) + (i-1)*(n-1)))
+        eval_element!(g.X[i,:], g.N[i,:], x[sel],
+                      view(χ, sel, (1:n) + (i-1)*(n-1)))
     end
     if g.bl == :dirichlet0
         χ[:,1] = 0
@@ -77,8 +67,7 @@ function evaluate!(basis::Basis, x::AbstractVector, χ::AbstractMatrix)
 end
 
 function (basis::Basis)(x::AbstractVector)
-    N,n = size(basis.grid)
-    χ = spzeros(length(x),(N-1)*(n-1)+1)
+    χ = spzeros(length(x),basecount(basis.grid))
     evaluate!(basis, x, χ)
 end
 
