@@ -6,73 +6,121 @@
 [[https://coveralls.io/github/jagot/FEDVR.jl?branch=master][https://coveralls.io/repos/jagot/FEDVR.jl/badge.svg?branch=master&service=github]]
 [[http://codecov.io/github/jagot/FEDVR.jl?branch=master][http://codecov.io/github/jagot/FEDVR.jl/coverage.svg?branch=master]]
 
-#+PROPERTY: header-args:julia :session *julia-README*
+#+PROPERTY: header-args:julia :session *julia-FEDVR*
 
 This is a Julia package for the Finite-Element Discrete Variable
 Representation method, used in the solution of partial differential
-equations.
+equations. The main purpose for the package is for numerical solution
+of the [[https://en.wikipedia.org/wiki/Schrödinger_equation][Time-Dependent Schrödinger Equation]] ([i∂ₜ-Ĥ]|ψ⟩ = 0), however,
+its usefulness is not limited to this equation.
 
 * Usage
-  #+BEGIN_SRC julia :exports code
-    using FEDVR
-  #+END_SRC
+** Grid setup
+   #+BEGIN_SRC julia :exports code
+     using FEDVR
+   #+END_SRC
 
-  #+RESULTS:
-  : nothing
+   #+RESULTS:
+   : nothing
 
-  #+BEGIN_SRC julia :exports none
-    using Plots
-    gr()
-  #+END_SRC
+   #+BEGIN_SRC julia :exports none
+     using Plots
+     pyplot()
+     using LaTeXStrings
+   #+END_SRC
 
-  #+RESULTS:
-  : kinop
+   #+RESULTS:
+   : nothing
 
-  We set up the basis for the calculations like so:
-  #+BEGIN_SRC julia :exports both :results verbatim
-    basis = FEDVR.Basis(0:3,10)
-  #+END_SRC
+   We set up the basis for the calculations like so:
+   #+BEGIN_SRC julia :exports both :results verbatim
+     basis = FEDVR.Basis(linspace(0,1,11),10)
+   #+END_SRC
 
-  #+RESULTS:
-  : FEDVR Basis(FEDVR Grid with 3 elements of order 10 [dirichlet0,dirichlet0])
-  By default, Dirichlet0 boundary conditions at both boundaries are
-  assumed (by passing any other symbol than =:dirichlet0=, Dirichlet1
-  boundary conditions are applied; Neumann boundary conditions not yet
-  supported).
+   #+RESULTS:
+   : FEDVR Basis(FEDVR Grid with 10 elements of order 10 [dirichlet0,dirichlet0])
+   By default, Dirichlet0 boundary conditions at both boundaries are
+   assumed (by passing any other symbol than =:dirichlet0=, Dirichlet1
+   boundary conditions are applied; Neumann boundary conditions not yet
+   supported).
 
-  We can then plot the grid point locations:
-  #+BEGIN_SRC julia :exports code
-  plot(basis.grid)
-  #+END_SRC
+   We can then plot the grid point locations:
+   #+BEGIN_SRC julia :exports code
+     plot(basis.grid)
+   #+END_SRC
 
-  #+RESULTS:
-  : Plot{Plots.GRBackend() n=1}
+   #+RESULTS:
+   : Plot{Plots.PyPlotBackend() n=1}
 
-  #+BEGIN_SRC julia :exports results :results file
-  savefig("figures/grid.svg")
-  "figures/grid.svg"
-  #+END_SRC
+   #+BEGIN_SRC julia :exports results :results file
+     savefig("figures/grid.svg")
+     "figures/grid.svg"
+   #+END_SRC
 
-  #+RESULTS:
-  [[file:figures/grid.svg]]
+   #+RESULTS:
+   [[file:figures/grid.svg]]
 
 
 
-  as well as the basis functions:
-  #+BEGIN_SRC julia :exports code
-  plot(basis)
-  #+END_SRC
+   as well as the basis functions:
+   #+BEGIN_SRC julia :exports code
+     plot(basis)
+   #+END_SRC
 
-  #+RESULTS:
-  : Plot{Plots.GRBackend() n=28}
+   #+RESULTS:
 
-  #+BEGIN_SRC julia :exports results :results file
-  savefig("figures/basis.svg")
-  "figures/basis.svg"
-  #+END_SRC
+   #+BEGIN_SRC julia :exports results :results file
+     savefig("figures/basis.svg")
+     "figures/basis.svg"
+   #+END_SRC
 
-  #+RESULTS:
-  [[file:figures/basis.svg]]
+   #+RESULTS:
+   [[file:figures/basis.svg]]
+
+** Kinetic operator
+   The 1D kinetic operator is given by T̂ = -∂ₓ²/2, and can be
+   retrieved by
+   #+BEGIN_SRC julia :exports both :results verbatim
+     T = kinop(basis)
+   #+END_SRC
+
+   #+RESULTS:
+   : BlockMaps.BlockMap{Float64}(91, 91, BlockMaps.Block{Float64}[10x10 Float64 block at (1,1), 10x10 Float64 block at (10,10), 10x10 Float64 block at (19,19), 10x10 Float64 block at (28,28), 10x10 Float64 block at (37,37), 10x10 Float64 block at (46,46), 10x10 Float64 block at (55,55), 10x10 Float64 block at (64,64), 10x10 Float64 block at (73,73), 10x10 Float64 block at (82,82)], false, false, false, true, 1.0e-8)
+   which returns a [[https://github.com/jagot/BlockMaps.jl][BlockMap]], a [[https://github.com/Jutho/LinearMaps.jl][LinearMap]] that is specialized for
+   structured matrices consisting of blocks such as those arising from
+   a FEDVR treatment.
+
+   Its eigenstates (also known as the eigenstates of a
+   particle-in-a-box) can be computed using [[https://docs.julialang.org/en/stable/stdlib/linalg/#Base.LinAlg.eigs-Tuple{Any}][Julia's builtin sparse
+   diagonalization routine]]:
+   #+BEGIN_SRC julia :exports code :results verbatim
+     λ,ϕ = eigs(T,which=:SR)
+   #+END_SRC
+
+   #+RESULTS:
+   : (Complex{Float64}[-1.13115e-11+0.0im, -4.89202e-14+0.0im, 4.9348+0.0im, 19.7392+0.0im, 44.4132+0.0im, 78.9568+0.0im], Complex{Float64}[0.928719+0.0im -0.309441+0.0im 1.54765e-13+0.0im -2.20934e-14+0.0im 7.21645e-16+0.0im 1.65282e-14+0.0im; -3.38751e-15+0.0im -1.45152e-15+0.0im -0.0014593+0.0im 0.00291838+0.0im 0.00437698+0.0im -0.00583489+0.0im; -1.33991e-14+0.0im -6.1058e-15+0.0im -0.00615176+0.0im 0.0122932+0.0im 0.0184139+0.0im -0.0245036+0.0im; -2.98142e-14+0.0im -1.37879e-14+0.0im -0.0139987+0.0im 0.0279034+0.0im 0.0416205+0.0im -0.0550579+0.0im; -4.76641e-14+0.0im -2.30992e-14+0.0im -0.0236618+0.0im 0.0469174+0.0im 0.0693676+0.0im -0.0906269+0.0im; -6.1276e-14+0.0im -3.16579e-14+0.0im -0.0329423+0.0im 0.064784+0.0im 0.0944612+0.0im -0.120982+0.0im; -6.70025e-14+0.0im -3.78654e-14+0.0im -0.0393176+0.0im 0.0765258+0.0im 0.109628+0.0im -0.136849+0.0im; -6.30567e-14+0.0im -3.91372e-14+0.0im -0.0404515+0.0im 0.0779041+0.0im 0.109581+0.0im -0.133135+0.0im; -5.00088e-14+0.0im -3.32878e-14+0.0im -0.0342878+0.0im 0.0654819+0.0im 0.0907678+0.0im -0.107864+0.0im; -2.90998e-14+0.0im -2.01543e-14+0.0im -0.0206011+0.0im 0.0391857+0.0im 0.0539345+0.0im -0.0634038+0.0im; -5.03114e-14+0.0im -3.63838e-14+0.0im -0.0370636+0.0im 0.070204+0.0im 0.0959132+0.0im -0.11147+0.0im; -6.58165e-14+0.0im -5.1658e-14+0.0im -0.0521528+0.0im 0.0977948+0.0im 0.131228+0.0im -0.148279+0.0im; -7.24379e-14+0.0im -6.59292e-14+0.0im -0.0659448+0.0im 0.121674+0.0im 0.158556+0.0im -0.170876+0.0im; -7.04812e-14+0.0im -7.83662e-14+0.0im -0.0779498+0.0im 0.140698+0.0im 0.176008+0.0im -0.176993+0.0im; -5.99872e-14+0.0im -8.58784e-14+0.0im -0.0863218+0.0im 0.15174+0.0im 0.180413+0.0im -0.165398+0.0im; -4.43431e-14+0.0im -8.62201e-14+0.0im -0.0887853+0.0im 0.151725+0.0im 0.170496+0.0im -0.139635+0.0im; -2.81941e-14+0.0im -7.93254e-14+0.0im -0.083095+0.0im 0.138345+0.0im 0.147234+0.0im -0.106785+0.0im; -1.61742e-14+0.0im -6.27388e-14+0.0im -0.0666786+0.0im 0.10887+0.0im 0.111081+0.0im -0.0724984+0.0im; -7.72134e-15+0.0im -3.67691e-14+0.0im -0.0391857+0.0im 0.0634038+0.0im 0.0634038+0.0im -0.0391857+0.0im; -1.00445e-14+0.0im -6.42264e-14+0.0im -0.0690398+0.0im 0.110674+0.0im 0.108376+0.0im -0.0630574+0.0im; -6.21347e-15+0.0im -8.52038e-14+0.0im -0.0930488+0.0im 0.145942+0.0im 0.135854+0.0im -0.0671377+0.0im; 5.49232e-15+0.0im -9.95039e-14+0.0im -0.111436+0.0im 0.16897+0.0im 0.144773+0.0im -0.0505494+0.0im; 1.96267e-14+0.0im -1.08598e-13+0.0im -0.124607+0.0im 0.180737+0.0im 0.137542+0.0im -0.0187607+0.0im; 3.30991e-14+0.0im -1.11333e-13+0.0im -0.131252+0.0im 0.180737+0.0im 0.117627+0.0im 0.0187607+0.0im; 3.90963e-14+0.0im -1.06391e-13+0.0im -0.129562+0.0im 0.16897+0.0im 0.090802+0.0im 0.0505494+0.0im; 3.73839e-14+0.0im -9.48678e-14+0.0im -0.117605+0.0im 0.145942+0.0im 0.0635031+0.0im 0.0671377+0.0im; 2.87438e-14+0.0im -7.32482e-14+0.0im -0.0925424+0.0im 0.110674+0.0im 0.0398157+0.0im 0.0630574+0.0im; 1.66864e-14+0.0im -4.22943e-14+0.0im -0.0539345+0.0im 0.0634038+0.0im 0.0206011+0.0im 0.0391857+0.0im; 2.84048e-14+0.0im -7.31273e-14+0.0im -0.094258+0.0im 0.10887+0.0im 0.0314901+0.0im 0.0724984+0.0im; 3.4247e-14+0.0im -9.45662e-14+0.0im -0.124836+0.0im 0.138345+0.0im 0.0284779+0.0im 0.106785+0.0im; 3.45295e-14+0.0im -1.06216e-13+0.0im -0.146019+0.0im 0.151725+0.0im 0.0116351+0.0im 0.139635+0.0im; 2.8462e-14+0.0im -1.10036e-13+0.0im -0.159068+0.0im 0.15174+0.0im -0.0143176+0.0im 0.165398+0.0im; 1.7825e-14+0.0im -1.08692e-13+0.0im -0.163333+0.0im 0.140698+0.0im -0.042134+0.0im 0.176993+0.0im; 5.89605e-15+0.0im -1.02441e-13+0.0im -0.157656+0.0im 0.121674+0.0im -0.0637518+0.0im 0.170876+0.0im; -3.6199e-15+0.0im -9.00313e-14+0.0im -0.140602+0.0im 0.0977948+0.0im -0.072582+0.0im 0.148279+0.0im; -7.43106e-15+0.0im -6.91998e-14+0.0im -0.109348+0.0im 0.070204+0.0im -0.0642748+0.0im 0.11147+0.0im; -5.37887e-15+0.0im -4.01502e-14+0.0im -0.0634038+0.0im 0.0391857+0.0im -0.0391857+0.0im 0.0634038+0.0im; -1.16138e-14+0.0im -6.96532e-14+0.0im -0.110249+0.0im 0.0654819+0.0im -0.0713569+0.0im 0.107864+0.0im; -2.06111e-14+0.0im -9.10922e-14+0.0im -0.144404+0.0im 0.0779041+0.0im -0.102376+0.0im 0.133135+0.0im; -3.22654e-14+0.0im -1.04615e-13+0.0im -0.166308+0.0im 0.0765258+0.0im -0.131095+0.0im 0.136849+0.0im; -4.45821e-14+0.0im -1.12346e-13+0.0im -0.177957+0.0im 0.064784+0.0im -0.154373+0.0im 0.120982+0.0im; -5.42243e-14+0.0im -1.13944e-13+0.0im -0.179427+0.0im 0.0469174+0.0im -0.167159+0.0im 0.0906269+0.0im; -5.75623e-14+0.0im -1.08371e-13+0.0im -0.170318+0.0im 0.0279034+0.0im -0.165747+0.0im 0.0550579+0.0im; -5.2802e-14+0.0im -9.5011e-14+0.0im -0.149837+0.0im 0.0122932+0.0im -0.148828+0.0im 0.0245036+0.0im; -4.09571e-14+0.0im -7.31711e-14+0.0im -0.115449+0.0im 0.00291838+0.0im -0.115375+0.0im 0.00583489+0.0im; -2.38129e-14+0.0im -4.22457e-14+0.0im -0.0666667+0.0im -1.88918e-14+0.0im -0.0666667+0.0im 1.35828e-14+0.0im; -4.01354e-14+0.0im -7.3113e-14+0.0im -0.115449+0.0im -0.00291838+0.0im -0.115375+0.0im -0.00583489+0.0im; -5.09561e-14+0.0im -9.49061e-14+0.0im -0.149837+0.0im -0.0122932+0.0im -0.148828+0.0im -0.0245036+0.0im; -5.42366e-14+0.0im -1.07341e-13+0.0im -0.170318+0.0im -0.0279034+0.0im -0.165747+0.0im -0.0550579+0.0im; -5.01797e-14+0.0im -1.13111e-13+0.0im -0.179427+0.0im -0.0469174+0.0im -0.167159+0.0im -0.0906269+0.0im; -3.95986e-14+0.0im -1.11183e-13+0.0im -0.177957+0.0im -0.064784+0.0im -0.154373+0.0im -0.120982+0.0im; -2.59633e-14+0.0im -1.02669e-13+0.0im -0.166308+0.0im -0.0765258+0.0im -0.131095+0.0im -0.136849+0.0im; -1.35961e-14+0.0im -8.77032e-14+0.0im -0.144404+0.0im -0.0779041+0.0im -0.102376+0.0im -0.133135+0.0im; -6.05034e-15+0.0im -6.66529e-14+0.0im -0.110249+0.0im -0.0654819+0.0im -0.0713569+0.0im -0.107864+0.0im; -2.37234e-15+0.0im -3.82892e-14+0.0im -0.0634038+0.0im -0.0391857+0.0im -0.0391857+0.0im -0.0634038+0.0im; -1.72321e-15+0.0im -6.57153e-14+0.0im -0.109348+0.0im -0.070204+0.0im -0.0642748+0.0im -0.11147+0.0im; 1.87859e-15+0.0im -8.35386e-14+0.0im -0.140602+0.0im -0.0977948+0.0im -0.072582+0.0im -0.148279+0.0im; 9.93971e-15+0.0im -9.27582e-14+0.0im -0.157656+0.0im -0.121674+0.0im -0.0637518+0.0im -0.170876+0.0im; 1.9155e-14+0.0im -9.4769e-14+0.0im -0.163333+0.0im -0.140698+0.0im -0.042134+0.0im -0.176993+0.0im; 2.70645e-14+0.0im -9.11799e-14+0.0im -0.159068+0.0im -0.15174+0.0im -0.0143176+0.0im -0.165398+0.0im; 2.97494e-14+0.0im -8.26252e-14+0.0im -0.146019+0.0im -0.151725+0.0im 0.0116351+0.0im -0.139635+0.0im; 2.72431e-14+0.0im -6.94783e-14+0.0im -0.124836+0.0im -0.138345+0.0im 0.0284779+0.0im -0.106785+0.0im; 2.0612e-14+0.0im -5.18692e-14+0.0im -0.094258+0.0im -0.10887+0.0im 0.0314901+0.0im -0.0724984+0.0im; 1.14441e-14+0.0im -2.94482e-14+0.0im -0.0539345+0.0im -0.0634038+0.0im 0.0206011+0.0im -0.0391857+0.0im; 2.02589e-14+0.0im -5.0111e-14+0.0im -0.0925424+0.0im -0.110674+0.0im 0.0398157+0.0im -0.0630574+0.0im; 2.48958e-14+0.0im -6.22385e-14+0.0im -0.117605+0.0im -0.145942+0.0im 0.0635031+0.0im -0.0671377+0.0im; 2.56018e-14+0.0im -6.63371e-14+0.0im -0.129562+0.0im -0.16897+0.0im 0.090802+0.0im -0.0505494+0.0im; 2.19631e-14+0.0im -6.45648e-14+0.0im -0.131252+0.0im -0.180737+0.0im 0.117627+0.0im -0.0187607+0.0im; 1.4729e-14+0.0im -5.99278e-14+0.0im -0.124607+0.0im -0.180737+0.0im 0.137542+0.0im 0.0187607+0.0im; 6.17687e-15+0.0im -5.28353e-14+0.0im -0.111436+0.0im -0.16897+0.0im 0.144773+0.0im 0.0505494+0.0im; -7.42249e-16+0.0im -4.40983e-14+0.0im -0.0930488+0.0im -0.145942+0.0im 0.135854+0.0im 0.0671377+0.0im; -3.70074e-15+0.0im -3.24498e-14+0.0im -0.0690398+0.0im -0.110674+0.0im 0.108376+0.0im 0.0630574+0.0im; -2.9335e-15+0.0im -1.80753e-14+0.0im -0.0391857+0.0im -0.0634038+0.0im 0.0634038+0.0im 0.0391857+0.0im; -6.81178e-15+0.0im -3.07985e-14+0.0im -0.0666786+0.0im -0.10887+0.0im 0.111081+0.0im 0.0724984+0.0im; -1.31473e-14+0.0im -3.74605e-14+0.0im -0.083095+0.0im -0.138345+0.0im 0.147234+0.0im 0.106785+0.0im; -2.24331e-14+0.0im -3.88926e-14+0.0im -0.0887853+0.0im -0.151725+0.0im 0.170496+0.0im 0.139635+0.0im; -3.18978e-14+0.0im -3.82301e-14+0.0im -0.0863218+0.0im -0.15174+0.0im 0.180413+0.0im 0.165398+0.0im; -3.82732e-14+0.0im -3.61499e-14+0.0im -0.0779498+0.0im -0.140698+0.0im 0.176008+0.0im 0.176993+0.0im; -3.88674e-14+0.0im -3.22227e-14+0.0im -0.0659448+0.0im -0.121674+0.0im 0.158556+0.0im 0.170876+0.0im; -3.46118e-14+0.0im -2.55251e-14+0.0im -0.0521528+0.0im -0.0977948+0.0im 0.131228+0.0im 0.148279+0.0im; -2.65627e-14+0.0im -1.83156e-14+0.0im -0.0370636+0.0im -0.070204+0.0im 0.0959132+0.0im 0.11147+0.0im; -1.49287e-14+0.0im -1.00797e-14+0.0im -0.0206011+0.0im -0.0391857+0.0im 0.0539345+0.0im 0.0634038+0.0im; -2.53955e-14+0.0im -1.66678e-14+0.0im -0.0342878+0.0im -0.0654819+0.0im 0.0907678+0.0im 0.107864+0.0im; -3.19879e-14+0.0im -1.97829e-14+0.0im -0.0404515+0.0im -0.0779041+0.0im 0.109581+0.0im 0.133135+0.0im; -3.25273e-14+0.0im -1.89811e-14+0.0im -0.0393176+0.0im -0.0765258+0.0im 0.109628+0.0im 0.136849+0.0im; -2.83102e-14+0.0im -1.58277e-14+0.0im -0.0329423+0.0im -0.064784+0.0im 0.0944612+0.0im 0.120982+0.0im; -2.02754e-14+0.0im -1.07219e-14+0.0im -0.0236618+0.0im -0.0469174+0.0im 0.0693676+0.0im 0.0906269+0.0im; -1.19867e-14+0.0im -5.52768e-15+0.0im -0.0139987+0.0im -0.0279034+0.0im 0.0416205+0.0im 0.0550579+0.0im; -5.01926e-15+0.0im -2.14452e-15+0.0im -0.00615176+0.0im -0.0122932+0.0im 0.0184139+0.0im 0.0245036+0.0im; -1.56854e-15+0.0im -4.72659e-16+0.0im -0.0014593+0.0im -0.00291838+0.0im 0.00437698+0.0im 0.00583489+0.0im; -0.370784+0.0im -0.950919+0.0im 5.42122e-13+0.0im -9.01501e-14+0.0im -3.66374e-15+0.0im 4.96246e-14+0.0im], 6, 123, 1717, [2.79606e-12, 295.105, -1335.01, -1564.44, 255.917, 1522.16, 738.582, -943.27, -1181.42, -457.66, -1431.23, 817.416, 882.911, 1062.81, -461.609, -1774.38, 60.7454, -325.868, 354.721, -485.474, 2507.39, 84.2908, -423.629, -1308.12, 467.228, 1344.16, 331.309, -670.296, -854.216, 295.403, -896.77, -305.212, 785.077, 224.943, 1381.13, -830.912, -2443.5, 76.9046, 80.3315, -617.666, 724.853, -211.331, -366.276, 349.547, 309.738, 1096.52, -757.164, 24.4991, -72.5459, 234.517, 180.793, -532.345, -174.189, 124.229, -443.276, -611.01, 581.264, 178.36, 642.887, 88.4516, -803.218, -1241.34, 724.024, 1181.17, 309.375, 406.968, 374.36, -996.243, -569.146, 764.3, 1024.33, 82.5976, 52.7313, 823.381, -813.549, -1021.74, -940.175, 1036.29, 1626.13, -826.196, 196.525, -1378.48, -654.021, -967.417, 507.753, 1645.68, -73.2001, -1300.72, -1227.11, 120.885, -9.26656e-12])
+
+   #+BEGIN_SRC julia :exports results results file
+     Xp = locs(basis.grid)
+     x = linspace(minimum(Xp),maximum(Xp),1001)
+     χ = basis(x)
+
+     p = plot(layout=(2,1), link=:both, leg=false)
+     plot!(p[1],Xp,real.(ϕ),
+           marker=:circle,
+           ylabel=L"\Re\{\mathbf{c}\}",
+           xformatter=_->"")
+     plot!(p[2], x,abs2.(χ*ϕ),
+           xlabel=L"x",
+           ylabel=L"|\phi_n(x)|^2")
+
+     savefig("figures/eigenstates.svg")
+     "figures/eigenstates.svg"
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:figures/eigenstates.svg]]
+
 
 * Wishes
   - Efficiently calculate matrix elements for
@@ -121,4 +169,3 @@ equations.
      using the Short Iterative Lanczos method and finite-element
      discrete variable representation. Advances in Quantum Chemistry, 72, 95–127.
      DOI: [[http://dx.doi.org/10.1016/bs.aiq.2015.12.002][10.1016/bs.aiq.2015.12.002]]
-

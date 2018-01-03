@@ -88,3 +88,5 @@ function kinop(basis::Basis)
              clear_overlaps=true,
              overlap_tol=1e-8)
 end
+
+export kinop
