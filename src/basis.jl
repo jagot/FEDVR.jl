@@ -9,9 +9,12 @@ function Basis(r::AbstractVector, n::Integer, args...)
     Basis(grid, f′)
 end
 
+"""
+    find_interval(X, x, i, sel)
+
+Find the interval of points in `x` covering the `i`:th row in
+`X`. The search is started from the first element in `sel`."""
 function find_interval(X, x, i, sel)
-    """Find the interval of points in `x` covering the `i`:th row in
-    `X`. The search is started from the first element in `sel`."""
     geq(v) = x -> x ≥ v
     a = findfirst(geq(X[i,1]), x[sel[1]:end]) + sel[1] - 1
     b = max(a,sel[end])
@@ -19,16 +22,29 @@ function find_interval(X, x, i, sel)
     a:b
 end
 
+"""
+    lagrange(xⁱ, m, x)
+
+Calculate the Lagrange interpolating polynomial Lₘ(x), given the roots
+`xⁱ`.
+
+Lₘ(x) = ∏(j≠m) (x-xⁱⱼ)/(xⁱₘ-xⁱⱼ)
+"""
+function lagrange(xⁱ::AbstractVector, m::Integer, x)
+    Lₘ = ones(x)
+    for j in eachindex(xⁱ)
+        j == m && continue
+        Lₘ .*= (x-xⁱ[j])/(xⁱ[m]-xⁱ[j])
+    end
+    Lₘ
+end
+
 function eval_element!(xⁱ, wⁱ, wa, wb,
                        x, χ)
     n = length(xⁱ)
     for m in 1:n
-        f = ones(x)
-        for j in 1:n
-            j == m && continue
-            f .*= (x-xⁱ[j])/(xⁱ[m]-xⁱ[j])
-        end
-        χ[:,m] = f /
+        Lₘ = lagrange(xⁱ, m, x)
+        χ[:,m] = Lₘ /
             if m in 2:n-1
                 sqrt(wⁱ[m])
             elseif m == 1
