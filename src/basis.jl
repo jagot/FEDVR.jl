@@ -1,12 +1,12 @@
 type Basis
     grid::Grid
-    f′::AbstractArray
+    L′::AbstractArray
 end
 
 function Basis(r::AbstractVector, n::Integer, args...)
     grid = Grid(r, n, args...)
-    f′ = eval_base_ders(grid)
-    Basis(grid, f′)
+    L′ = eval_base_ders(grid)
+    Basis(grid, L′)
 end
 
 """
@@ -20,23 +20,6 @@ function find_interval(X, x, i, sel)
     b = max(a,sel[end])
     b = findfirst(geq(X[i,end]), x[b:end]) + b - 1
     a:b
-end
-
-"""
-    lagrange(xⁱ, m, x)
-
-Calculate the Lagrange interpolating polynomial Lₘ(x), given the roots
-`xⁱ`.
-
-Lₘ(x) = ∏(j≠m) (x-xⁱⱼ)/(xⁱₘ-xⁱⱼ)
-"""
-function lagrange(xⁱ::AbstractVector, m::Integer, x)
-    Lₘ = ones(x)
-    for j in eachindex(xⁱ)
-        j == m && continue
-        Lₘ .*= (x-xⁱ[j])/(xⁱ[m]-xⁱ[j])
-    end
-    Lₘ
 end
 
 function eval_element!(xⁱ, Nⁱ, x, χ)

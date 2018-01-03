@@ -1,42 +1,22 @@
 using BlockMaps
 
-"Kronecker δ function"
-δ(a,b) = a == b ? 1 : 0
-
-function eval_base_ders_element!(xⁱ::AbstractVector, wⁱ::AbstractVector,
-                                 f′::AbstractMatrix)
-    n = length(xⁱ)
-    for m in 1:n
-        f′[m,m] = (δ(m,n)-δ(m,1))/2wⁱ[m]
-        for mp in 1:n
-            mp == m && continue
-            f = 1
-            for k = 1:n
-                k in [m,mp] && continue
-                f *= (xⁱ[mp]-xⁱ[k])/(xⁱ[m]-xⁱ[k])
-            end
-            f′[m,mp] = f/(xⁱ[m]-xⁱ[mp])
-        end
-    end
-end
-
 function eval_base_ders(grid::Grid)
     n = order(grid)
 
-    f′ = zeros(elcount(grid), n, n)
+    L′ = zeros(elcount(grid), n, n)
     for i = elems(grid)
         sel = (1:n) + (i-1)*(n-1)
         eval_base_ders_element!(grid.X[i,:], grid.W[i,:],
-                                view(f′, i, :, :))
+                                view(L′, i, :, :))
     end
     # if grid.bl == :dirichlet0
-    #     f′[1,:,1] = 0
+    #     L′[1,:,1] = 0
     # end
     # if grid.br == :dirichlet0
-    #     f′[end,:,end] = 0
+    #     L′[end,:,end] = 0
     # end
 
-    f′
+    L′
 end
 
 function derop(basis::Basis, a, b)
@@ -52,8 +32,8 @@ function derop(basis::Basis, a, b)
     for i = elrange
         f0[i,:,:] = speye(n)
     end
-    fa = a == 1 ? basis.f′ : f0
-    fb = b == 1 ? basis.f′ : f0
+    fa = a == 1 ? basis.L′ : f0
+    fb = b == 1 ? basis.L′ : f0
 
     d̃ = [zeros(n,n) for i = elrange]
     indices = Tuple{Integer,Integer}[]
