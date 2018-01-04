@@ -1,7 +1,7 @@
 using FastGaussQuadrature
 import Base: size, show
 
-type Grid
+mutable struct Grid
     X::AbstractMatrix # Quadrature roots
     W::AbstractMatrix # Quadrature weights
     N::AbstractMatrix # Inverted weights for matrix elements
@@ -22,8 +22,8 @@ function Grid(r::AbstractVector, n::Integer,
               bl::Symbol=:dirichlet0,
               br::Symbol=:dirichlet0)
     xₘ,wₘ = gausslobatto(n)
-    xₘ = (xₘ + 1)/2
-    lerp(a,b,t) = (1-t)*a + t*b
+    xₘ = broadcast(+, xₘ, 1)/2
+    lerp(a,b,t) = broadcast(-, 1, t)*a + t*b
     nel = length(r)-1
     X = zeros(nel, n)
     W = zeros(nel, n)

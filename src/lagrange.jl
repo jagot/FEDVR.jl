@@ -8,14 +8,16 @@ Lⁱₘ(x) = ∏(j≠m) (x-xⁱⱼ)/(xⁱₘ-xⁱⱼ)
 
 Eq. (8) Rescigno2000
 """
-function lagrange(xⁱ::AbstractVector, m::Integer, x)
-    Lₘ = ones(x)
+function lagrange(xⁱ::AbstractVector, m::Integer, x::AbstractVector)
+    Lₘ = fill(1.0, length(x))
     for j in eachindex(xⁱ)
         j == m && continue
-        Lₘ .*= (x-xⁱ[j])/(xⁱ[m]-xⁱ[j])
+        Lₘ .*= broadcast(-, x, xⁱ[j])/(xⁱ[m]-xⁱ[j])
     end
     Lₘ
 end
+lagrange(xⁱ::AbstractVector, m::Integer, x::Number) =
+    lagrange(xⁱ, m, [x])[1]
 
 """
     δ(a,b)

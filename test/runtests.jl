@@ -33,9 +33,10 @@ end
     n = 5
     breaks = linspace(0,1,N)
     grid = FEDVR.Grid(breaks, n)
-    e = m -> [zeros(m-1);1;zeros(n-m)]
+    e = m -> vec([zeros(m-1);1;zeros(n-m)])
     for i = elems(grid)
         for m = 1:n
+            @test FEDVR.lagrange(grid.X[i,:], m, grid.X[i,m]) == 1
             @test FEDVR.lagrange(grid.X[i,:], m, grid.X[i,:]) == e(m)
         end
     end
