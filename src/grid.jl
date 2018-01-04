@@ -104,4 +104,4 @@ end
     locs(grid)
 end
 
-export elcount, elems, order, locs, weights
+export elcount, elems, order, basecount, locs, weights
