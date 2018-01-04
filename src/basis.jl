@@ -15,10 +15,10 @@ end
 Find the interval of points in `x` covering the `i`:th row in
 `X`. The search is started from the first element in `sel`."""
 function find_interval(X, x, i, sel)
-    geq(v) = x -> x ≥ v
-    a = findfirst(geq(X[i,1]), x[sel[1]:end]) + sel[1] - 1
+    le(v) = x -> x < v
+    a = findlast(le(X[i,1]), x[sel[1]:end]) + sel[1]
     b = max(a,sel[end])
-    b = findfirst(geq(X[i,end]), x[b:end]) + b - 1
+    b = findlast(le(X[i,end]), x[b:end]) + b - 1 + (i == size(X,1) ? 1 : 0)
     a:b
 end
 
@@ -27,6 +27,7 @@ function eval_element!(xⁱ, Nⁱ, x, χ)
     for m in 1:n
         Lₘ = lagrange(xⁱ, m, x)
         χ[:,m] = Nⁱ[m]*Lₘ
+        m > 1 && (χ[1,m] = 0)
     end
 end
 
