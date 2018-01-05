@@ -92,3 +92,27 @@ end
         @test vecdist(c′, c′a)[2] < 1e-13
     end
 end
+
+@testset "basis" begin
+    N = 11
+    n = 5
+    breaks = linspace(0,1,N)
+    basis = FEDVR.Basis(breaks, n)
+
+    x = locs(basis.grid)
+    χ = basis(x)
+    dχ = diag(χ)
+    @test dχ[1] == dχ[end] == 0
+    gN = [basis.grid.N[:,1:end-1]'[:]..., basis.grid.N[end]]
+    @test dχ[2:end-1] == gN[2:end-1]
+
+    @testset "misc" begin
+        @test !isempty(string(basis))
+
+        @test begin
+            using RecipesBase
+            RecipesBase.apply_recipe(Dict{Symbol,Any}(), basis)
+            true
+        end
+    end
+end
