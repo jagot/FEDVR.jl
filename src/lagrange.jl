@@ -12,7 +12,7 @@ function lagrange(xⁱ::AbstractVector, m::Integer, x::AbstractVector)
     Lₘ = fill(1.0, length(x))
     for j in eachindex(xⁱ)
         j == m && continue
-        Lₘ .*= broadcast(-, x, xⁱ[j])/(xⁱ[m]-xⁱ[j])
+        Lₘ .*= (x .- xⁱ[j])/(xⁱ[m]-xⁱ[j])
     end
     Lₘ
 end

@@ -22,8 +22,8 @@ function Grid(r::AbstractVector, n::Integer,
               bl::Symbol=:dirichlet0,
               br::Symbol=:dirichlet0)
     xₘ,wₘ = gausslobatto(n)
-    xₘ = broadcast(+, xₘ, 1)/2
-    lerp(a,b,t) = broadcast(-, 1, t)*a + t*b
+    xₘ = (xₘ .+ 1)/2
+    lerp(a,b,t) = (1 .- t)*a + t*b
     nel = length(r)-1
     X = zeros(nel, n)
     W = zeros(nel, n)
