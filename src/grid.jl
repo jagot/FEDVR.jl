@@ -90,6 +90,19 @@ function weights(grid::Grid)
     [wl, [grid.W[:,2:end-1] [bridges;wr]]'[:]...]
 end
 
+"""
+    find_interval(X, x, i, sel)
+
+Find the interval of points in `x` covering the `i`:th row in
+`X`. The search is started from the first element in `sel`."""
+function find_interval(X, x, i, sel)
+    lt(v) = x -> x < v
+    a = findlast(lt(X[i,1]), x[sel[1]:end]) + sel[1]
+    b = max(a,sel[end])
+    b = findlast(lt(X[i,end]), x[b:end]) + b - 1 + (i == size(X,1) ? 1 : 0)
+    a:b
+end
+
 function show(io::IO, grid::Grid)
     write(io, "FEDVR Grid with $(elcount(grid)) elements of order $(order(grid)) [$(grid.bl),$(grid.br)]")
 end

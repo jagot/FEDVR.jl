@@ -1,6 +1,12 @@
 using FEDVR
 using Base.Test
 
+function vecdist(a::AbstractVector, b::AbstractVector,
+                 ϵ = eps(eltype(a)))
+    δ = √(sum(abs2, a-b))
+    δ, δ/√(sum(abs2, a .+ ϵ))
+end
+
 @testset "grid" begin
     N = 11
     n = 5
@@ -22,10 +28,38 @@ using Base.Test
     @test Xp[1] == breaks[1]
     @test Xp[end] == breaks[end]
 
-    println(grid)
+    gW = weights(grid)
+    gN = [grid.N[:,1:end-1]'[:]..., grid.N[end]]
+    @test vecdist(sqrt.(gW[2:end-1]),
+                  1./gN[2:end-1])[1] < eps(Float64)
 
-    using RecipesBase
-    RecipesBase.apply_recipe(Dict{Symbol,Any}(), grid)
+    @testset "intervals" begin
+        for nn = 300:301
+            x = linspace(breaks[1], breaks[end], nn)
+            sel = 1:1
+            sel = FEDVR.find_interval(grid.X, x, 1, sel)
+            @test x[sel[1]] == breaks[1]
+            for i = elems(grid)[1:end-1]
+                sel = FEDVR.find_interval(grid.X, x, i, sel)
+                @test x[sel[1]] >= breaks[i]
+                @test x[sel[end]] < breaks[i+1]
+            end
+            i = elcount(grid)
+            sel = FEDVR.find_interval(grid.X, x, i, sel)
+            @test x[sel[1]] >= breaks[i]
+            @test x[sel[end]] == breaks[end]
+        end
+    end
+
+    @testset "misc" begin
+        @test !isempty(string(grid))
+
+        @test begin
+            using RecipesBase
+            RecipesBase.apply_recipe(Dict{Symbol,Any}(), grid)
+            true
+        end
+    end
 end
 
 @testset "lagrange" begin
@@ -48,12 +82,6 @@ end
 
     f = x -> x^4
     g = x -> 4x^3
-
-    function vecdist(a::AbstractVector, b::AbstractVector,
-                     ϵ = eps(eltype(a)))
-        δ = √(sum(abs2, a-b))
-        δ, δ/√(sum(abs2, a .+ ϵ))
-    end
 
     for i = elems(grid)
         L′ = zeros(n,n)
