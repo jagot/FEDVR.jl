@@ -117,15 +117,15 @@ end
     end
 end
 
-@testset "expansions" begin
+@testset "projections" begin
     breaks = linspace(0,1,11)
-    n = 4
+    n = 5
     basis = FEDVR.Basis(breaks, n, :dirichlet1, :dirichlet1)
     x = linspace(minimum(breaks),maximum(breaks),301)
     χ = basis(x)
 
-    f = x -> x^3 - 7x^2 + x^3 + 2
-    ϕ = expand(f, basis)
+    f = x -> x^3 - 7x^2 + x^4 + 2
+    ϕ = project(f, basis)
 
     @test vecdist(f.(x), χ*ϕ)[2] < 10eps(Float64)
 end

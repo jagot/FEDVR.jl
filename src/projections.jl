@@ -1,10 +1,10 @@
 """
-    expand!(fun, grid, i, cⁱ)
+    project!(fun, grid, i, cⁱ)
 
-Expand the function `fun` on the finite element of `grid` with index
+Project the function `fun` onto the finite element of `grid` with index
 `i`, writing the results in the vector of expansion coefficients `cⁱ`.
 """
-function expand!(fun, grid::Grid, i::Integer,
+function project!(fun, grid::Grid, i::Integer,
                  cⁱ::AbstractVector)
     n = order(grid)
     cⁱ[1] = grid.N[i,1]*grid.W[i,1]*fun(grid.X[i,1])
@@ -15,15 +15,15 @@ function expand!(fun, grid::Grid, i::Integer,
 end
 
 """
-    expand(fun, basis)
+    project(fun, basis)
 
-Expand the function `fun` onto the FEDVR `basis`.
+Project the function `fun` onto the FEDVR `basis`.
 """
-function Base.expand(fun, basis::Basis)
+function project(fun, basis::Basis)
     grid = basis.grid
     C = zeros(grid.X)
     for i = elems(grid)
-        expand!(fun, grid, i, view(C, i, :))
+        project!(fun, grid, i, view(C, i, :))
     end
     # The bridge functions overlap the function both in element i and
     # element i+1; thus the contributions need to be added into one
@@ -33,4 +33,4 @@ function Base.expand(fun, basis::Basis)
     [C[:,1:end-1]'[:]..., C[end]]
 end
 
-export expand
+export project

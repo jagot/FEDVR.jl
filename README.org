@@ -79,7 +79,7 @@ its usefulness is not limited to this equation.
    A scalar function can be expanded by
    #+BEGIN_SRC julia :exports code
      f = x -> x*(x-1)^2
-     ϕ = expand(f, basis)
+     ϕ = project(f, basis)
    #+END_SRC
 
    #+RESULTS:
