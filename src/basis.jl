@@ -5,7 +5,7 @@ end
 
 function Basis(r::AbstractVector, n::Integer, args...)
     grid = Grid(r, n, args...)
-    L′ = eval_base_ders(grid)
+    L′ = lagrangeder(grid)
     Basis(grid, L′)
 end
 

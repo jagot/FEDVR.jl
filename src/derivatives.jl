@@ -1,17 +1,5 @@
 using BlockMaps
 
-function eval_base_ders(grid::Grid)
-    n = order(grid)
-
-    L′ = zeros(elcount(grid), n, n)
-    for i = elems(grid)
-        sel = (1:n) + (i-1)*(n-1)
-        lagrangeder!(grid.X[i,:], grid.W[i,:],
-                     view(L′, i, :, :))
-    end
-    L′
-end
-
 function derop(basis::Basis, a, b)
     (a ∉ [0,1] || b ∉ [0,1]) &&
         error("Can only calculate derivative operators of orders 0–2!")

@@ -83,11 +83,11 @@ end
     f = x -> x^4
     g = x -> 4x^3
 
+    L′ = FEDVR.lagrangeder(grid)
+
     for i = elems(grid)
-        L′ = zeros(n,n)
-        FEDVR.lagrangeder!(grid.X[i,:], grid.W[i,:], L′)
         c = f.(grid.X[i,:])
-        c′ = L′'c
+        c′ = L′[i,:,:]'c
         c′a = g.(grid.X[i,:])
         @test vecdist(c′, c′a)[2] < 1e-13
     end
