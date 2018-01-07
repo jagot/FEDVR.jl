@@ -3,6 +3,8 @@
 #+EMAIL: stefanos.carlstrom@gmail.com
 
 [[https://travis-ci.org/jagot/FEDVR.jl][https://travis-ci.org/jagot/FEDVR.jl.svg?branch=master]]
+[[https://ci.appveyor.com/project/jagot/fedvr-jl][https://ci.appveyor.com/api/projects/status/nxei8dj3jp11vb2d?svg=true]]
+
 [[https://coveralls.io/github/jagot/FEDVR.jl?branch=master][https://coveralls.io/repos/github/jagot/FEDVR.jl/badge.svg?branch=master]]
 [[https://codecov.io/gh/jagot/FEDVR.jl][https://codecov.io/gh/jagot/FEDVR.jl/branch/master/graph/badge.svg]]
 
