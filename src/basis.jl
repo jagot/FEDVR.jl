@@ -1,4 +1,6 @@
-mutable struct Basis
+using AbstractBases
+
+mutable struct Basis <: AbstractBasis
     grid::Grid
     L′::AbstractArray
 end
@@ -9,12 +11,12 @@ function Basis(r::AbstractVector, n::Integer, args...)
     Basis(grid, L′)
 end
 
-function eval_element!(xⁱ, Nⁱ, x, χ)
+function eval_element!(xⁱ, Nⁱ, x, χ, mrange)
     n = length(xⁱ)
-    for m in 1:n
+    for (mi,m) in enumerate(mrange)
         Lₘ = lagrange(xⁱ, m, x)
-        χ[:,m] = Nⁱ[m]*Lₘ
-        m > 1 && (χ[1,m] = 0)
+        χ[:,mi] = Nⁱ[m]*Lₘ
+        m > 1 && x[1] ∉ xⁱ && (χ[1,mi] = 0)
     end
 end
 
@@ -23,16 +25,14 @@ function evaluate!(basis::Basis, x::AbstractVector, χ::AbstractMatrix)
     n = order(g)
 
     sel = 1:1
+    el1shift = n - length(bases(g, 1))
     for i in elems(g)
         sel = find_interval(g.X, x, i, sel)
+        b = bases(g, i)
         eval_element!(g.X[i,:], g.N[i,:], x[sel],
-                      view(χ, sel, (1:n) + (i-1)*(n-1)))
-    end
-    if g.bl == :dirichlet0
-        χ[:,1] = 0
-    end
-    if g.br == :dirichlet0
-        χ[:,end] = 0
+                      view(χ, sel,
+                           eachindex(b) + (i-1)*(n-1) - (i > 1 ? el1shift : 0)),
+                      b)
     end
     χ
 end

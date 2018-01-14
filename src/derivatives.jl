@@ -32,6 +32,7 @@ function derop(basis::Basis, a, b)
             end
         end
     end
+
     for i = 2:elcount(g)
         d̃⁻ = d̃[i-1][end,end]
         d̃⁺ = d̃[i][1,1]
@@ -64,12 +65,13 @@ function kinop(basis::Basis)
     end
 
     if g.bl == :dirichlet0
-        T[1][:,1] = 0
-        T[1][1,:] = 0
+        T[1] = T[1][2:end,2:end]
+        for i in 2:length(indices)
+            indices[i] = (indices[i][1]-1,indices[i][2]-1)
+        end
     end
     if g.br == :dirichlet0
-        T[end][:,end] = 0
-        T[end][end,:] = 0
+        T[end] = T[end][1:end-1,1:end-1]
     end
 
     BlockMap(indices,T,

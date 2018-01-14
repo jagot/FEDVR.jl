@@ -13,25 +13,27 @@ end
     breaks = linspace(0,1,N)
     grid = FEDVR.Grid(breaks, n)
 
-    # We want the endpoints of the finite elements to match up exactly
-    @test grid.X[1:end-1,end] == grid.X[2:end,1]
+    @testset "dirichlet0" begin
+        # We want the endpoints of the finite elements to match up exactly
+        @test grid.X[1:end-1,end] == grid.X[2:end,1]
 
-    @test grid.N[1] == 1/√(grid.W[1])
-    @test grid.N[2,1] == 1/√(grid.W[1,end]+grid.W[2,1])
+        @test grid.N[1] == 1/√(grid.W[1])
+        @test grid.N[2,1] == 1/√(grid.W[1,end]+grid.W[2,1])
 
-    @test elcount(grid) == N-1
-    @test elems(grid) == 1:N-1
-    @test order(grid) == n
-    @test basecount(grid) == (N-1)*n - (N-2)
-    Xp = locs(grid)
-    @test length(Xp) == basecount(grid)
-    @test Xp[1] == breaks[1]
-    @test Xp[end] == breaks[end]
+        @test elcount(grid) == N-1
+        @test elems(grid) == 1:N-1
+        @test order(grid) == n
+        @test basecount(grid) == (N-1)*n - (N-2) - 2 # Dirichlet0 boundary conditions, hence -2
+        Xp = locs(grid)
+        @test length(Xp) == basecount(grid)
+        @test Xp[1] > breaks[1]
+        @test Xp[end] < breaks[end]
 
-    gW = weights(grid)
-    gN = [grid.N[:,1:end-1]'[:]..., grid.N[end]]
-    @test vecdist(sqrt.(gW[2:end-1]),
-                  1./gN[2:end-1])[1] < eps(Float64)
+        gW = weights(grid)
+        gN = FEDVR.boundary_sel(grid, [grid.N[:,1:end-1]'[:]..., grid.N[end]])
+        @test vecdist(sqrt.(gW[2:end-1]),
+                      1./gN[2:end-1])[1] < eps(Float64)
+    end
 
     @testset "intervals" begin
         for nn = 300:301
@@ -59,6 +61,28 @@ end
             RecipesBase.apply_recipe(Dict{Symbol,Any}(), grid)
             true
         end
+    end
+
+    @testset "dirichlet1" begin
+        N = 11
+        n = 5
+        breaks = linspace(0,1,N)
+        grid = FEDVR.Grid(breaks, n, :dirichlet1, :dirichlet1)
+
+        # We want the endpoints of the finite elements to match up exactly
+        @test grid.X[1:end-1,end] == grid.X[2:end,1]
+
+        @test grid.N[1] == 1/√(grid.W[1])
+        @test grid.N[2,1] == 1/√(grid.W[1,end]+grid.W[2,1])
+
+        @test elcount(grid) == N-1
+        @test elems(grid) == 1:N-1
+        @test order(grid) == n
+        @test basecount(grid) == (N-1)*n - (N-2)
+        Xp = locs(grid)
+        @test length(Xp) == basecount(grid)
+        @test Xp[1] == breaks[1]
+        @test Xp[end] == breaks[end]
     end
 end
 
@@ -97,22 +121,25 @@ end
     N = 11
     n = 5
     breaks = linspace(0,1,N)
-    basis = FEDVR.Basis(breaks, n)
+    for bdrl = [:dirichlet0, :dirichlet1]
+        for bdrr = [:dirichlet0, :dirichlet1]
+            basis = FEDVR.Basis(breaks, n, bdrl, bdrr)
 
-    x = locs(basis.grid)
-    χ = evaluate(basis, x)
-    dχ = diag(χ)
-    @test dχ[1] == dχ[end] == 0
-    gN = [basis.grid.N[:,1:end-1]'[:]..., basis.grid.N[end]]
-    @test dχ[2:end-1] == gN[2:end-1]
+            x = locs(basis.grid)
+            χ = evaluate(basis, x)
+            dχ = diag(χ)
+            gN = [basis.grid.N[:,1:end-1]'[:]..., basis.grid.N[end]]
+            @test dχ == FEDVR.boundary_sel(basis.grid, gN)
 
-    @testset "misc" begin
-        @test !isempty(string(basis))
+            @testset "misc" begin
+                @test !isempty(string(basis))
 
-        @test begin
-            using RecipesBase
-            RecipesBase.apply_recipe(Dict{Symbol,Any}(), basis)
-            true
+                @test begin
+                    using RecipesBase
+                    RecipesBase.apply_recipe(Dict{Symbol,Any}(), basis)
+                    true
+                end
+            end
         end
     end
 end

@@ -1,5 +1,5 @@
 using FastGaussQuadrature
-import Base: size, show
+import Base: size, show, minimum, maximum
 
 mutable struct Grid
     X::AbstractMatrix # Quadrature roots
@@ -69,14 +69,49 @@ order(grid::Grid) = grid.n
 
 Return total number of basis functions in grid.
 """
-basecount(grid::Grid) = elcount(grid)*order(grid) - (elcount(grid)-1)
+basecount(grid::Grid) = elcount(grid)*order(grid) - (elcount(grid)-1) - (grid.bl == :dirichlet0 ? 1 : 0) - (grid.br == :dirichlet0 ? 1 : 0)
+
+"""
+    bases(grid, i)
+
+Return range of basis function indices in element `i`. For an interior
+element, this is always `1:n`, where `n` is the order of the `i`th
+element. For the first element, in the case of a `:dirichlet0`
+boundary condition, the result is `2:n`, otherwise
+`1:n`. Equivalently, for the last element, in case of `:dirichlet0`
+boundary conditions, the result is `1:n-1`."""
+function bases(grid::Grid, i::Integer)
+    n = order(grid)
+    if i == 1 && grid.bl == :dirichlet0
+        2:n
+    elseif i == grid.nel && grid.br == :dirichlet0
+        1:n-1
+    else
+        1:n
+    end
+end
+
+minimum(grid::Grid) = min(grid.X[1],grid.X[end])
+maximum(grid::Grid) = max(grid.X[1],grid.X[end])
+
+function boundary_sel(grid::Grid, v::AbstractVector)
+    if grid.bl == :dirichlet0 && grid.br == :dirichlet0
+        v[2:end-1]
+    elseif grid.bl == :dirichlet0
+        v[2:end]
+    elseif grid.br == :dirichlet0
+        v[1:end-1]
+    else
+        v
+    end
+end
 
 """
     locs(grid)
 
 Return locations of Gauss–Lobatto quadrature points.
 """
-locs(grid::Grid) = [grid.X[:,1:end-1]'[:]..., grid.X[end]]
+locs(grid::Grid) = boundary_sel(grid, [grid.X[:,1:end-1]'[:]..., grid.X[end]])
 
 """
     weights(grid)
@@ -87,7 +122,7 @@ function weights(grid::Grid)
     bridges = grid.W[1:end-1,end] + grid.W[2:end,1]
     wl = grid.bl == :dirichlet0 ? 0 : grid.W[1]
     wr = grid.br == :dirichlet0 ? 0 : grid.W[end]
-    [wl, [grid.W[:,2:end-1] [bridges;wr]]'[:]...]
+    boundary_sel(grid, [wl, [grid.W[:,2:end-1] [bridges;wr]]'[:]...])
 end
 
 """
@@ -99,7 +134,12 @@ function find_interval(X, x, i, sel)
     lt(v) = x -> x < v
     a = findlast(lt(X[i,1]), x[sel[1]:end]) + sel[1]
     b = max(a,sel[end])
-    b = findlast(lt(X[i,end]), x[b:end]) + b - 1 + (i == size(X,1) ? 1 : 0)
+    b = findlast(lt(X[i,end]), x[b:end]) + b - 1
+    if i == size(X,1) && b < length(x)
+        # If last finite element and *not* :dirichlet0 boundary
+        # conditions, include finite-element end-point in interval.
+        b += 1
+    end
     a:b
 end
 
