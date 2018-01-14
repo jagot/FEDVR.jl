@@ -3,7 +3,7 @@
 #+EMAIL: stefanos.carlstrom@gmail.com
 
 [[https://travis-ci.org/jagot/FEDVR.jl][https://travis-ci.org/jagot/FEDVR.jl.svg?branch=master]]
-[[https://ci.appveyor.com/project/jagot/fedvr-jl][https://ci.appveyor.com/api/projects/status/nxei8dj3jp11vb2d?svg=true]]
+#+HTML: <a href="https://ci.appveyor.com/project/jagot/fedvr-jl"><object type="image/svg+xml" data="https://ci.appveyor.com/api/projects/status/nxei8dj3jp11vb2d?svg=true" class="org-svg">Sorry, your browser does not support SVG.</object></a>
 
 [[https://coveralls.io/github/jagot/FEDVR.jl?branch=master][https://coveralls.io/repos/github/jagot/FEDVR.jl/badge.svg?branch=master]]
 [[https://codecov.io/gh/jagot/FEDVR.jl][https://codecov.io/gh/jagot/FEDVR.jl/branch/master/graph/badge.svg]]
@@ -180,7 +180,7 @@ its usefulness is not limited to this equation.
    #+BEGIN_SRC julia :exports results :results file
      Xp = locs(basis.grid)
      x = linspace(minimum(Xp),maximum(Xp),1001)
-     χ = basis(x)
+     χ = evaluate(basis, x)
 
      experror = clamp.(abs.(f.(x)-χ*ϕ), 1e-20, Inf)
 
