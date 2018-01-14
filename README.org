@@ -3,7 +3,7 @@
 #+EMAIL: stefanos.carlstrom@gmail.com
 
 [[https://travis-ci.org/jagot/FEDVR.jl][https://travis-ci.org/jagot/FEDVR.jl.svg?branch=master]]
-#+HTML: <a href="https://ci.appveyor.com/project/jagot/fedvr-jl"><object type="image/svg+xml" data="https://ci.appveyor.com/api/projects/status/nxei8dj3jp11vb2d?svg=true" class="org-svg">Sorry, your browser does not support SVG.</object></a>
+#+HTML: <a href="https://ci.appveyor.com/project/jagot/fedvr-jl"><img src="https://ci.appveyor.com/api/projects/status/nxei8dj3jp11vb2d?svg=true" alt="Sorry, your browser does not support SVG."/></a>
 
 [[https://coveralls.io/github/jagot/FEDVR.jl?branch=master][https://coveralls.io/repos/github/jagot/FEDVR.jl/badge.svg?branch=master]]
 [[https://codecov.io/gh/jagot/FEDVR.jl][https://codecov.io/gh/jagot/FEDVR.jl/branch/master/graph/badge.svg]]
@@ -13,7 +13,7 @@
 This is a Julia package for the Finite-Element Discrete Variable
 Representation method, used in the solution of partial differential
 equations. The main purpose for the package is for numerical solution
-of the [[https://en.wikipedia.org/wiki/Schrödinger_equation][Time-Dependent Schrödinger Equation]] ([i∂ₜ-Ĥ]|ψ⟩ = 0), however,
+of the [[https://en.wikipedia.org/wiki/Schrödinger_equation][Time-Dependent Schrödinger Equation]] ([i∂ₜ-Ĥ]|ψ⟩ = 0), however,
 its usefulness is not limited to this equation.
 
 * Usage
