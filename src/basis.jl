@@ -1,6 +1,4 @@
-using AbstractBases
-
-mutable struct Basis <: AbstractBasis
+mutable struct Basis
     grid::Grid
     L′::AbstractArray
 end
@@ -16,7 +14,6 @@ function eval_element!(xⁱ, Nⁱ, x, χ, mrange)
     for (mi,m) in enumerate(mrange)
         Lₘ = lagrange(xⁱ, m, x)
         χ[:,mi] = Nⁱ[m]*Lₘ
-        m > 1 && x[1] ∉ xⁱ && (χ[1,mi] = 0)
     end
 end
 
