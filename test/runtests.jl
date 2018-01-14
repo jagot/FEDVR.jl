@@ -100,7 +100,7 @@ end
     basis = FEDVR.Basis(breaks, n)
 
     x = locs(basis.grid)
-    χ = basis(x)
+    χ = evaluate(basis, x)
     dχ = diag(χ)
     @test dχ[1] == dχ[end] == 0
     gN = [basis.grid.N[:,1:end-1]'[:]..., basis.grid.N[end]]
@@ -122,7 +122,7 @@ end
     n = 5
     basis = FEDVR.Basis(breaks, n, :dirichlet1, :dirichlet1)
     x = linspace(minimum(breaks),maximum(breaks),301)
-    χ = basis(x)
+    χ = evaluate(basis, x)
 
     f = x -> x^3 - 7x^2 + x^4 + 2
     ϕ = project(f, basis)

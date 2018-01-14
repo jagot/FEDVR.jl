@@ -37,7 +37,7 @@ function evaluate!(basis::Basis, x::AbstractVector, χ::AbstractMatrix)
     χ
 end
 
-function (basis::Basis)(x::AbstractVector)
+function evaluate(basis::Basis, x::AbstractVector)
     χ = spzeros(length(x),basecount(basis.grid))
     evaluate!(basis, x, χ)
 end
@@ -51,5 +51,7 @@ end
     xticks --> [basis.grid.X[:,1]..., basis.grid.X[end,end]]
     xlabel --> "x"
     legend --> false
-    x,basis(x)
+    x,evaluate(basis, x)
 end
+
+export evaluate
