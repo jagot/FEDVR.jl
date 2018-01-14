@@ -13,6 +13,9 @@ end
     breaks = linspace(0,1,N)
     grid = FEDVR.Grid(breaks, n)
 
+    @test minimum(grid) == 0
+    @test maximum(grid) == 1
+
     @testset "dirichlet0" begin
         # We want the endpoints of the finite elements to match up exactly
         @test grid.X[1:end-1,end] == grid.X[2:end,1]
