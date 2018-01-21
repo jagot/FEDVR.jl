@@ -1,4 +1,4 @@
-mutable struct Basis
+struct Basis
     grid::Grid
     L′::AbstractArray
 end

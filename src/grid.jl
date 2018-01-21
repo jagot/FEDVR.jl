@@ -1,7 +1,7 @@
 using FastGaussQuadrature
 import Base: size, show, minimum, maximum
 
-mutable struct Grid
+struct Grid
     X::AbstractMatrix # Quadrature roots
     W::AbstractMatrix # Quadrature weights
     N::AbstractMatrix # Inverted weights for matrix elements
