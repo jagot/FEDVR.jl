@@ -75,7 +75,7 @@ function kinop(basis::Basis)
     end
 
     BlockMap(indices,T,
-             clear_overlaps=true,
+             overlaps=:split,
              overlap_tol=1e-8)
 end
 
