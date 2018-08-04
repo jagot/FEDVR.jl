@@ -5,7 +5,7 @@ Project the function `fun` onto the finite element of `grid` with index
 `i`, writing the results in the vector of expansion coefficients `cⁱ`.
 """
 function project!(fun, grid::Grid, i::Integer,
-                 cⁱ::AbstractVector)
+                  cⁱ::AbstractVector)
     n = order(grid)
     cⁱ[1] = grid.N[i,1]*grid.W[i,1]*fun(grid.X[i,1])
     for m = 2:n-1
