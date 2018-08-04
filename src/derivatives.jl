@@ -1,6 +1,6 @@
 using BlockMaps
 
-function derop(basis::Basis, a, b)
+function der_blocks(basis::Basis, a, b)
     (a ∉ [0,1] || b ∉ [0,1]) &&
         error("Can only calculate derivative operators of orders 0–2!")
 
@@ -42,41 +42,54 @@ function derop(basis::Basis, a, b)
     indices,d̃
 end
 
-function derop(basis::Basis,o)
+function der_blocks(basis::Basis,o)
     a = o ÷ 2
     b = o - a
-    derop(basis::Basis,a,b)
+    der_blocks(basis::Basis,a,b)
 end
 
-function kinop(basis::Basis)
+function derop(basis::Basis,o)
     g = basis.grid
     n = order(g)
     elrange = elems(g)
-    indices,t̃ = derop(basis,2)
-    T = [zeros(n,n) for i = elrange]
+    indices,d̃ = der_blocks(basis,o)
+    D = [zeros(n,n) for i = elrange]
     for i = elrange
-        Tel = T[i]
-        t̃el = t̃[i]
+        Del = D[i]
+        d̃el = d̃[i]
         for m = 1:n
             for m′ = 1:n
-                Tel[m,m′] = 0.5g.N[i,m]*g.N[i,m′]*t̃el[m,m′]
+                Del[m,m′] = g.N[i,m]*g.N[i,m′]*d̃el[m,m′]
             end
         end
     end
 
     if g.bl == :dirichlet0
-        T[1] = T[1][2:end,2:end]
+        D[1] = D[1][2:end,2:end]
         for i in 2:length(indices)
             indices[i] = (indices[i][1]-1,indices[i][2]-1)
         end
     end
     if g.br == :dirichlet0
-        T[end] = T[end][1:end-1,1:end-1]
+        D[end] = D[end][1:end-1,1:end-1]
     end
 
-    BlockMap(indices,T,
+    BlockMap(indices,D,
              overlaps=:split,
              overlap_tol=1e-8)
 end
 
-export kinop
+function kinop(basis::Basis)
+    D = derop(basis, 2)
+    blocks = map(D.blocks) do b
+        BlockMaps.Block(0.5b.a, b.i, b.j)
+    end
+    BlockMap(size(D)..., blocks,
+             issymmetric(D),
+             ishermitian(D),
+             isposdef(D),
+             D.overlaps,
+             D.overlap_tol)
+end
+
+export derop, kinop
