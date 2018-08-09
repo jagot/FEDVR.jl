@@ -1,0 +1,10 @@
+name = "FEDVR"
+uuid = "7f64dc6e-ccd1-5a31-8826-1dc29b280c7c"
+authors = ["Stefanos Carlström <stefanos.carlstrom@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+BlockMaps = "d8394ddc-3346-5325-9a2b-8a6d3660a8c1"
+FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
+LinearMaps = "7a12625a-238d-50fd-b39a-03d52299707e"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
