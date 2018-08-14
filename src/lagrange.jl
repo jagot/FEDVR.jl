@@ -59,7 +59,7 @@ function lagrangeder(grid::Grid)
 
     L′ = zeros(elcount(grid), n, n)
     for i = elems(grid)
-        sel = (1:n) + (i-1)*(n-1)
+        sel = (1:n) .+ (i-1)*(n-1)
         lagrangeder!(grid.X[i,:], grid.W[i,:],
                      view(L′, i, :, :))
     end

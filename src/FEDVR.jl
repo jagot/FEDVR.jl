@@ -2,6 +2,7 @@ __precompile__()
 
 module FEDVR
 
+using SparseArrays
 using RecipesBase
 
 include("grid.jl")

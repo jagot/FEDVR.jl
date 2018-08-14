@@ -1,5 +1,7 @@
 using FEDVR
-using Base.Test
+using LinearAlgebra
+using Test
+using Arpack
 
 function vecdist(a::AbstractVector, b::AbstractVector,
                  ϵ = eps(eltype(a)))
@@ -10,7 +12,7 @@ end
 @testset "grid" begin
     N = 11
     n = 5
-    breaks = linspace(0,1,N)
+    breaks = range(0, stop=1, length=N)
     grid = FEDVR.Grid(breaks, n)
 
     @test minimum(grid) == 0
@@ -35,12 +37,12 @@ end
         gW = weights(grid)
         gN = FEDVR.boundary_sel(grid, [grid.N[:,1:end-1]'[:]..., grid.N[end]])
         @test vecdist(sqrt.(gW[2:end-1]),
-                      1./gN[2:end-1])[1] < eps(Float64)
+                      1 ./ gN[2:end-1])[1] < eps(Float64)
     end
 
     @testset "intervals" begin
         for nn = 300:301
-            x = linspace(breaks[1], breaks[end], nn)
+            x = range(breaks[1], stop=breaks[end], length=nn)
             sel = 1:1
             sel = FEDVR.find_interval(grid.X, x, 1, sel)
             @test x[sel[1]] == breaks[1]
@@ -69,7 +71,7 @@ end
     @testset "dirichlet1" begin
         N = 11
         n = 5
-        breaks = linspace(0,1,N)
+        breaks = range(0, stop=1, length=N)
         grid = FEDVR.Grid(breaks, n, :dirichlet1, :dirichlet1)
 
         # We want the endpoints of the finite elements to match up exactly
@@ -92,7 +94,7 @@ end
 @testset "lagrange" begin
     N = 11
     n = 5
-    breaks = linspace(0,1,N)
+    breaks = range(0, stop=1, length=N)
     grid = FEDVR.Grid(breaks, n)
     e = m -> vec([zeros(m-1);1;zeros(n-m)])
     for i = elems(grid)
@@ -123,7 +125,7 @@ end
 @testset "basis" begin
     N = 11
     n = 5
-    breaks = linspace(0,1,N)
+    breaks = range(0, stop=1, length=N)
     for bdrl = [:dirichlet0, :dirichlet1]
         for bdrr = [:dirichlet0, :dirichlet1]
             basis = FEDVR.Basis(breaks, n, bdrl, bdrr)
@@ -148,10 +150,10 @@ end
 end
 
 @testset "projections" begin
-    breaks = linspace(0,1,11)
+    breaks = range(0, stop=1, length=11)
     n = 5
     basis = FEDVR.Basis(breaks, n, :dirichlet1, :dirichlet1)
-    x = linspace(minimum(breaks),maximum(breaks),301)
+    x = range(minimum(breaks), stop=maximum(breaks), length=301)
     χ = evaluate(basis, x)
 
     f = x -> x^3 - 7x^2 + x^4 + 2
@@ -164,7 +166,7 @@ end
     N = 30
     n = 10
     L = 5.0
-    xx = linspace(0,L,N+1)
+    xx = range(0, stop=L, length=N+1)
     basis = FEDVR.Basis(xx, n)
     T = kinop(basis)
     x = locs(basis.grid)

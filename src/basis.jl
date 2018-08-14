@@ -28,7 +28,7 @@ function evaluate!(basis::Basis, x::AbstractVector, χ::AbstractMatrix)
         b = bases(g, i)
         eval_element!(g.X[i,:], g.N[i,:], x[sel],
                       view(χ, sel,
-                           eachindex(b) + (i-1)*(n-1) - (i > 1 ? el1shift : 0)),
+                           eachindex(b) .+ (i-1)*(n-1) .- (i > 1 ? el1shift : 0)),
                       b)
     end
     χ
@@ -44,7 +44,7 @@ function show(io::IO, basis::Basis)
 end
 
 @recipe function plot(basis::Basis, n=1001)
-    x = linspace(basis.grid.X[1,1],basis.grid.X[end,end],n)
+    x = range(basis.grid.X[1,1], stop=basis.grid.X[end,end], length=n)
     xticks --> [basis.grid.X[:,1]..., basis.grid.X[end,end]]
     xlabel --> "x"
     legend --> false

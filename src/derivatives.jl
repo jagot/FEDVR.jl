@@ -1,4 +1,5 @@
 using BlockMaps
+using LinearAlgebra
 
 function der_blocks(basis::Basis, a, b)
     (a ∉ [0,1] || b ∉ [0,1]) &&
@@ -10,7 +11,7 @@ function der_blocks(basis::Basis, a, b)
 
     f0 = zeros(elcount(g), n, n)
     for i = elrange
-        f0[i,:,:] = speye(n)
+        f0[i,:,:] = sparse(I, n, n)
     end
     fa = a == 1 ? basis.L′ : f0
     fb = b == 1 ? basis.L′ : f0
@@ -18,9 +19,9 @@ function der_blocks(basis::Basis, a, b)
     d̃ = [zeros(n,n) for i = elrange]
     indices = Tuple{Integer,Integer}[]
     for i = elrange
-        ii = (i-1)*(n-1)+1
+        ii = (i-1)*(n-1) .+ 1
         push!(indices, (ii,ii))
-        sel = (1:n) + (i-1)*(n-1)
+        sel = (1:n) .+ (i-1)*(n-1)
         fael = view(fa, i, :, :)
         fbel = view(fb, i, :, :)
         d̃el = d̃[i]

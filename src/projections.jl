@@ -21,7 +21,7 @@ Project the function `fun` onto the FEDVR `basis`.
 """
 function project(fun, basis::Basis)
     grid = basis.grid
-    C = zeros(grid.X)
+    C = zero(grid.X)
     for i = elems(grid)
         project!(fun, grid, i, view(C, i, :))
     end
