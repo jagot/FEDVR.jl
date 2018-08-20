@@ -35,7 +35,7 @@ function evaluate!(basis::Basis, x::AbstractVector, χ::AbstractMatrix)
 end
 
 function evaluate(basis::Basis, x::AbstractVector)
-    χ = spzeros(length(x),basecount(basis.grid))
+    χ = spzeros(eltype(basis.grid), length(x), basecount(basis.grid))
     evaluate!(basis, x, χ)
 end
 

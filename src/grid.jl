@@ -25,14 +25,14 @@ function Grid(r::AbstractVector, n::Integer,
     xₘ = (xₘ .+ 1)/2
     lerp(a,b,t) = (1 .- t)*a + t*b
     nel = length(r)-1
-    X = zeros(nel, n)
-    W = zeros(nel, n)
+    X = zeros(eltype(r), nel, n)
+    W = zeros(eltype(r), nel, n)
     for i = 1:nel
         X[i,:] = lerp(r[i], r[i+1], xₘ)
         W[i,:] = 0.5*(r[i+1]-r[i])*wₘ
     end
     # Precalculate inverse weights for matrix elements
-    N = zeros(nel, n)
+    N = zeros(eltype(r), nel, n)
     for i = 1:nel
         N[i,1] = 1/√(W[i,1] + (i == 1 ? 0 : W[i-1,end]))
         for m = 2:n-1
@@ -49,6 +49,13 @@ end
 Return number of finite elements in grid.
 """
 elcount(grid::Grid) = grid.nel
+
+"""
+    eltype(grid)
+
+Return type of the finite element boundaries in grid.
+"""
+Base.eltype(grid::Grid) = eltype(grid.X)
 
 """
     elems(grid)
@@ -133,7 +140,7 @@ end
 Find the interval of points in `x` covering the `i`:th row in
 `X`. The search is started from the first element in `sel`."""
 function find_interval(X, x, i, sel)
-    lt(v) = x -> x < v
+    lt(v) = x -> x < real(v)
     a = nothingiszero(findlast(lt(X[i,1]), x[sel[1]:end])) + sel[1]
     b = max(a,sel[end])
     b = nothingiszero(findlast(lt(X[i,end]), x[b:end])) + b - 1

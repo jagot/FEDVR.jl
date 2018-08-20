@@ -9,7 +9,7 @@ Lⁱₘ(x) = ∏(j≠m) (x-xⁱⱼ)/(xⁱₘ-xⁱⱼ)
 Eq. (8) Rescigno2000
 """
 function lagrange(xⁱ::AbstractVector, m::Integer, x::AbstractVector)
-    Lₘ = fill(1.0, length(x))
+    Lₘ = fill(one(eltype(xⁱ)), length(x))
     for j in eachindex(xⁱ)
         j == m && continue
         Lₘ .*= (x .- xⁱ[j])/(xⁱ[m]-xⁱ[j])
@@ -57,7 +57,7 @@ end
 function lagrangeder(grid::Grid)
     n = order(grid)
 
-    L′ = zeros(elcount(grid), n, n)
+    L′ = zeros(eltype(grid), elcount(grid), n, n)
     for i = elems(grid)
         sel = (1:n) .+ (i-1)*(n-1)
         lagrangeder!(grid.X[i,:], grid.W[i,:],
