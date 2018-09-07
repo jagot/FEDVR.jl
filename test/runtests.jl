@@ -1,7 +1,6 @@
 using FEDVR
 using LinearAlgebra
 using Test
-using Arpack
 
 function vecdist(a::AbstractVector, b::AbstractVector,
                  ϵ = eps(eltype(a)))
@@ -162,27 +161,27 @@ end
     @test vecdist(f.(x), χ*ϕ)[2] < 10eps(Float64)
 end
 
-@testset "derivatives" begin
-    N = 30
-    n = 10
-    L = 5.0
-    xx = range(0, stop=L, length=N+1)
-    basis = FEDVR.Basis(xx, n)
-    T = kinop(basis)
-    x = locs(basis.grid)
-    χ = evaluate(basis, x)
+# @testset "derivatives" begin
+#     N = 30
+#     n = 10
+#     L = 5.0
+#     xx = range(0, stop=L, length=N+1)
+#     basis = FEDVR.Basis(xx, n)
+#     T = kinop(basis)
+#     x = locs(basis.grid)
+#     χ = evaluate(basis, x)
 
-    mmax = 30
-    λ,ϕ = eigs(T,which=:SR,nev=mmax)
-    m = eachindex(λ)
-    λa = 0.5*(π*m/L).^2
+#     mmax = 30
+#     λ,ϕ = eigs(T,which=:SR,nev=mmax)
+#     m = eachindex(λ)
+#     λa = 0.5*(π*m/L).^2
 
-    @test vecdist(real.(λ), λa)[2] < 1e-11
+#     @test vecdist(real.(λ), λa)[2] < 1e-11
 
-    for m = 1:mmax
-        ϕa = √(2/L) * sin.(m*π*x/L)
-        ϕm = real(ϕ[:,m])
-        ϕm *= sign(ϕm[1])
-        @test vecdist(ϕa, χ*ϕm)[2] < 1e-8
-    end
-end
+#     for m = 1:mmax
+#         ϕa = √(2/L) * sin.(m*π*x/L)
+#         ϕm = real(ϕ[:,m])
+#         ϕm *= sign(ϕm[1])
+#         @test vecdist(ϕa, χ*ϕm)[2] < 1e-8
+#     end
+# end
