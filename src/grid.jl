@@ -125,8 +125,6 @@ function weights(grid::Grid)
     boundary_sel(grid, [wl, [grid.W[:,2:end-1] [bridges;wr]]'[:]...])
 end
 
-@inline nothingiszero(v) = v == nothing ? 0 : v
-
 """
     find_interval(X, x, i, sel)
 
@@ -134,9 +132,9 @@ Find the interval of points in `x` covering the `i`:th row in
 `X`. The search is started from the first element in `sel`."""
 function find_interval(X, x, i, sel)
     lt(v) = x -> x < v
-    a = nothingiszero(findlast(lt(X[i,1]), x[sel[1]:end])) + sel[1]
+    a = something(findlast(lt(X[i,1]), x[sel[1]:end]), 0) + sel[1]
     b = max(a,sel[end])
-    b = nothingiszero(findlast(lt(X[i,end]), x[b:end])) + b - 1
+    b = something(findlast(lt(X[i,end]), x[b:end]), 0) + b - 1
     if i == size(X,1) && b < length(x)
         # If last finite element and *not* :dirichlet0 boundary
         # conditions, include finite-element end-point in interval.
