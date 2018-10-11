@@ -146,6 +146,19 @@ end
             end
         end
     end
+
+    @testset "eval on subset" begin
+        basis = FEDVR.Basis(breaks, n)
+        x₁ = range(0, stop=1, length=35)
+        x₂ = x₁[8:19]
+        x₃ = range(-1, stop=-0.5, length=11)
+        χ₁ = evaluate(basis, x₁)
+        χ₂ = evaluate(basis, x₂)
+        χ₃ = evaluate(basis, x₃)
+        δχ = χ₁[8:19,:] - χ₂
+        @test norm(δχ) == 0
+        @test norm(χ₃) == 0
+    end
 end
 
 @testset "projections" begin

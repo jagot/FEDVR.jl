@@ -132,8 +132,8 @@ Find the interval of points in `x` covering the `i`:th row in
 `X`. The search is started from the first element in `sel`."""
 function find_interval(X, x, i, sel)
     lt(v) = x -> x < v
-    a = something(findlast(lt(X[i,1]), x[sel[1]:end]), 0) + sel[1]
-    b = max(a,sel[end])
+    a = something(findlast(lt(X[i,1]), x[first(sel):end]), 0) + first(sel)
+    b = max(a,last(sel))
     b = something(findlast(lt(X[i,end]), x[b:end]), 0) + b - 1
     if i == size(X,1) && b < length(x)
         # If last finite element and *not* :dirichlet0 boundary

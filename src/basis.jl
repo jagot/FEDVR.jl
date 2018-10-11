@@ -21,10 +21,13 @@ function evaluate!(basis::Basis, x::AbstractVector, χ::AbstractMatrix)
     g = basis.grid
     n = order(g)
 
+    (last(x) < first(basis.grid.X) || first(x) > last(basis.grid.X)) && return χ
+
     sel = 1:1
     el1shift = n - length(bases(g, 1))
     for i in elems(g)
         sel = find_interval(g.X, x, i, sel)
+        last(sel) < first(sel) && continue # This element is not covered by x
         b = bases(g, i)
         eval_element!(g.X[i,:], g.N[i,:], x[sel],
                       view(χ, sel,
