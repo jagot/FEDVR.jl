@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 struct Basis
     grid::Grid
     L′::AbstractArray
@@ -37,10 +39,25 @@ function evaluate!(basis::Basis, x::AbstractVector, χ::AbstractMatrix)
     χ
 end
 
-function evaluate(basis::Basis, x::AbstractVector)
+function (basis::Basis)(x::AbstractVector)
     χ = spzeros(length(x),basecount(basis.grid))
     evaluate!(basis, x, χ)
 end
+
+"""
+    basis(f)
+
+Generate the scalar operator corresponding to `f(x)` on the FEDVR
+`basis`.
+"""
+(basis::Basis)(f::Function) = Diagonal(f.(locs(basis.grid)))
+
+"""
+    basis(I)
+
+Return the identity matrix of `basis`.
+"""
+(basis::Basis)(::UniformScaling) = Diagonal(ones(basecount(basis.grid)))
 
 function show(io::IO, basis::Basis)
     write(io, "FEDVR Basis($(basis.grid))")
