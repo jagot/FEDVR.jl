@@ -130,7 +130,7 @@ end
             basis = FEDVR.Basis(breaks, n, bdrl, bdrr)
 
             x = locs(basis.grid)
-            χ = evaluate(basis, x)
+            χ = basis(x)
             dχ = diag(χ)
             gN = [basis.grid.N[:,1:end-1]'[:]..., basis.grid.N[end]]
             @test dχ == FEDVR.boundary_sel(basis.grid, gN)
@@ -152,9 +152,9 @@ end
         x₁ = range(0, stop=1, length=35)
         x₂ = x₁[8:19]
         x₃ = range(-1, stop=-0.5, length=11)
-        χ₁ = evaluate(basis, x₁)
-        χ₂ = evaluate(basis, x₂)
-        χ₃ = evaluate(basis, x₃)
+        χ₁ = basis(x₁)
+        χ₂ = basis(x₂)
+        χ₃ = basis(x₃)
         δχ = χ₁[8:19,:] - χ₂
         @test norm(δχ) == 0
         @test norm(χ₃) == 0
@@ -166,7 +166,7 @@ end
     n = 5
     basis = FEDVR.Basis(breaks, n, :dirichlet1, :dirichlet1)
     x = range(minimum(breaks), stop=maximum(breaks), length=301)
-    χ = evaluate(basis, x)
+    χ = basis(x)
 
     f = x -> x^3 - 7x^2 + x^4 + 2
     ϕ = project(f, basis)
@@ -182,7 +182,7 @@ end
 #     basis = FEDVR.Basis(xx, n)
 #     T = kinop(basis)
 #     x = locs(basis.grid)
-#     χ = evaluate(basis, x)
+#     χ = basis(x)
 
 #     mmax = 30
 #     λ,ϕ = eigs(T,which=:SR,nev=mmax)

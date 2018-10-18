@@ -68,7 +68,7 @@ end
     xticks --> [basis.grid.X[:,1]..., basis.grid.X[end,end]]
     xlabel --> "x"
     legend --> false
-    x,evaluate(basis, x)
+    x,basis(x)
 end
 
 export evaluate
