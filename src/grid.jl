@@ -23,12 +23,13 @@ function Grid(r::AbstractVector, n::Integer,
               br::Symbol=:dirichlet0)
     xₘ,wₘ = gausslobatto(n)
     xₘ = (xₘ .+ 1)/2
-    lerp(a,b,t) = (1 .- t)*a + t*b
+    # https://github.com/JuliaLang/julia/pull/18777
+    lerp(a::T,b::T,t) where T = T(fma(t, b, fma(-t, a, a)))
     nel = length(r)-1
     X = zeros(nel, n)
     W = zeros(nel, n)
     for i = 1:nel
-        X[i,:] = lerp(r[i], r[i+1], xₘ)
+        X[i,:] = lerp.(r[i], r[i+1], xₘ)
         W[i,:] = 0.5*(r[i+1]-r[i])*wₘ
     end
     # Precalculate inverse weights for matrix elements
