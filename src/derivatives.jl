@@ -1,4 +1,4 @@
-using BlockMaps
+using BlockBandedMatrices
 using LinearAlgebra
 
 function der_blocks(basis::Basis, a, b)
@@ -29,7 +29,7 @@ function der_blocks(basis::Basis, a, b)
             fm = fael[m,:]
             for m′ = 1:n
                 fm′ = fbel[m′,:]
-                d̃el[m,m′] = dot(fm,fm′.*basis.grid.W[i,:])
+                d̃el[m,m′] = dot(-fm,fm′.*basis.grid.W[i,:])
             end
         end
     end
@@ -75,22 +75,35 @@ function derop(basis::Basis,o)
         D[end] = D[end][1:end-1,1:end-1]
     end
 
-    BlockMap(indices,D,
-             overlaps=:split,
-             overlap_tol=1e-8)
+    rows = vcat(repeat([n-2,1], length(indices)-1), n-2)
+    M = sum(rows)
+    Dm = BlockBandedMatrix(Zeros(M,M), (rows,rows), (2,2))
+    for i in 1:length(indices)
+        s = 1+(i>1)
+        e = size(D[i],1)-(i<length(indices))
+        @view(Dm[Block(2i-1,2i-1)]) .= @view((D[i])[s:e,s:e])
+        if i < length(indices)
+            @view(Dm[Block(2i,2i)]) .= @view((D[i])[end,end])
+            @view(Dm[Block(2i-1,2i)]) .= @view((D[i])[s:e,end])
+            @view(Dm[Block(2i,2i-1)]) .= reshape(@view((D[i])[end,s:e]), 1, length(s:e))
+        end
+        if i > 1
+            @view(Dm[Block(2i-1,2i-2)]) .= @view((D[i])[s:e,1])
+            @view(Dm[Block(2i-2,2i-1)]) .= reshape(@view((D[i])[1,s:e]), 1, length(s:e))
+        end
+        if i > 1 && i < length(indices)
+            @view(Dm[Block(2i-2,2i)]) .= @view((D[i])[1,end])
+            @view(Dm[Block(2i,2i-2)]) .= @view((D[i])[end,1])
+        end
+    end
+
+    Dm
 end
 
 function kinop(basis::Basis)
     D = derop(basis, 2)
-    blocks = map(D.blocks) do b
-        BlockMaps.Block(0.5b.a, b.i, b.j)
-    end
-    BlockMap(size(D)..., blocks,
-             issymmetric(D),
-             ishermitian(D),
-             isposdef(D),
-             D.overlaps,
-             D.overlap_tol)
+    D ./= -2
+    D
 end
 
 export derop, kinop
