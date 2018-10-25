@@ -13,7 +13,7 @@ function der_blocks(basis::Basis, a, b)
     for i = elrange
         f0[i,:,:] = sparse(I, n, n)
     end
-    fa = a == 1 ? basis.L′ : f0
+    fa = a == 1 ? -basis.L′ : f0 # ∂ᴴ = -∂
     fb = b == 1 ? basis.L′ : f0
 
     d̃ = [zeros(n,n) for i = elrange]
@@ -29,7 +29,7 @@ function der_blocks(basis::Basis, a, b)
             fm = fael[m,:]
             for m′ = 1:n
                 fm′ = fbel[m′,:]
-                d̃el[m,m′] = dot(-fm,fm′.*basis.grid.W[i,:])
+                d̃el[m,m′] = dot(fm,fm′.*basis.grid.W[i,:])
             end
         end
     end
@@ -100,10 +100,6 @@ function derop(basis::Basis,o)
     Dm
 end
 
-function kinop(basis::Basis)
-    D = derop(basis, 2)
-    D ./= -2
-    D
-end
+kinop(basis::Basis) = derop(basis, 2) ./ -2
 
 export derop, kinop
