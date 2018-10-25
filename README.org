@@ -325,9 +325,30 @@ its usefulness is not limited to this equation.
           ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅           ⋅     │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │      -0.0         -0.0        -0.0       -0.0       -0.0       -0.0        -0.0         -0.0     │     -93.5532  │     145.455    -183.222    270.205   -489.409   1216.19   -5878.71    13209.7     -12242.1   
           ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅           ⋅     │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │        ⋅            ⋅           ⋅          ⋅          ⋅          ⋅           ⋅            ⋅      │        ⋅      │      -0.0         -0.0        -0.0       -0.0       -0.0       -0.0        -0.0         -0.0     │      76.7633  │    -118.267     145.455   -204.825    339.899   -703.111   2051.09   -12242.1      38845.7   
    #+end_example
-   which returns a [[https://github.com/jagot/BlockMaps.jl][BlockMap]], a [[https://github.com/Jutho/LinearMaps.jl][LinearMap]] that is specialized for
-   structured matrices consisting of blocks such as those arising from
-   a FEDVR treatment.
+   which returns a [[https://github.com/JuliaMatrices/BlockBandedMatrices.jl][BlockBandedMatrix]].
+
+   In the special case of bases of polynomial order 2, the derivative
+   operators reduce to tridiagonal matrices
+   #+BEGIN_SRC julia :exports both :results value verbatim
+     derop(FEDVR.Basis(0.0:10, 2), 2)
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+   9×9 LinearAlgebra.Tridiagonal{Float64,Array{Float64,1}}:
+    -2.0   1.0    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅ 
+     1.0  -2.0   1.0    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅ 
+      ⋅    1.0  -2.0   1.0    ⋅     ⋅     ⋅     ⋅     ⋅ 
+      ⋅     ⋅    1.0  -2.0   1.0    ⋅     ⋅     ⋅     ⋅ 
+      ⋅     ⋅     ⋅    1.0  -2.0   1.0    ⋅     ⋅     ⋅ 
+      ⋅     ⋅     ⋅     ⋅    1.0  -2.0   1.0    ⋅     ⋅ 
+      ⋅     ⋅     ⋅     ⋅     ⋅    1.0  -2.0   1.0    ⋅ 
+      ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    1.0  -2.0   1.0
+      ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    1.0  -2.0
+   #+end_example
+   which we recognize as the three-point stencil of the second
+   derivative, arising from a finite-difference treatment.
+
 
    Its eigenstates (also known as the eigenstates of a
    particle-in-a-box) can be computed using [[https://docs.julialang.org/en/stable/stdlib/linalg/#Base.LinAlg.eigs-Tuple{Any}][Julia's builtin sparse

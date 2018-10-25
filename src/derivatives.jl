@@ -49,6 +49,16 @@ function der_blocks(basis::Basis,o)
     der_blocks(basis::Basis,a,b)
 end
 
+function triderop(indices, D)
+    tmp = Vector{eltype(D[1])}(undef, maximum(maximum.(indices)) + size(last(D),1)-1)
+    T = Tridiagonal(tmp[2:end], tmp, tmp[2:end])
+    for (i,d) in zip(indices,D)
+        s = i[1]:i[1]+size(d,1)-1
+        @view(T[s,s]) .= d
+    end
+    T
+end
+
 function derop(basis::Basis,o)
     g = basis.grid
     n = order(g)
@@ -74,6 +84,8 @@ function derop(basis::Basis,o)
     if g.br == :dirichlet0
         D[end] = D[end][1:end-1,1:end-1]
     end
+
+    n == 2 && return triderop(indices, D)
 
     rows = vcat(repeat([n-2,1], length(indices)-1), n-2)
     M = sum(rows)
