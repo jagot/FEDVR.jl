@@ -31,6 +31,14 @@ git-tree-sha1 = "b3919df677a370cdd1975484c078938e680a82f9"
 uuid = "ffab5731-97b5-5995-9138-79e8c1846df0"
 version = "0.2.0"
 
+[[BlockMaps]]
+deps = ["BandedMatrices", "LinearAlgebra", "LinearMaps", "RecipesBase", "SparseArrays"]
+git-tree-sha1 = "acf1ab63af96dc39cf88658da346d8a99962198e"
+repo-rev = "master"
+repo-url = "https://github.com/jagot/BlockMaps.jl.git"
+uuid = "d8394ddc-3346-5325-9a2b-8a6d3660a8c1"
+version = "0.1.0"
+
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
 git-tree-sha1 = "2d9e14d19bad3f9ad5cc5e4cffabc3cfa59de825"

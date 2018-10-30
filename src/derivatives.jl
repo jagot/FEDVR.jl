@@ -1,4 +1,5 @@
 using BlockBandedMatrices
+using BlockMaps
 using LinearAlgebra
 
 function der_blocks(basis::Basis, a, b)
@@ -59,7 +60,7 @@ function triderop(indices, D)
     T
 end
 
-function derop(basis::Basis,o)
+function derop(basis::Basis,o,MT=:bbm)
     g = basis.grid
     n = order(g)
     elrange = elems(g)
@@ -87,31 +88,53 @@ function derop(basis::Basis,o)
 
     n == 2 && return triderop(indices, D)
 
-    rows = vcat(repeat([n-2,1], length(indices)-1), n-2)
-    M = sum(rows)
-    Dm = BlockBandedMatrix(Zeros(M,M), (rows,rows), (2,2))
-    for i in 1:length(indices)
-        s = 1+(i>1)
-        e = size(D[i],1)-(i<length(indices))
-        @view(Dm[Block(2i-1,2i-1)]) .= @view((D[i])[s:e,s:e])
-        if i < length(indices)
-            @view(Dm[Block(2i,2i)]) .= @view((D[i])[end,end])
-            @view(Dm[Block(2i-1,2i)]) .= @view((D[i])[s:e,end])
-            @view(Dm[Block(2i,2i-1)]) .= reshape(@view((D[i])[end,s:e]), 1, length(s:e))
+    if MT==:bbm
+        rows = vcat(repeat([n-2,1], length(indices)-1), n-2)
+        M = sum(rows)
+        Dm = BlockBandedMatrix(Zeros(M,M), (rows,rows), (2,2))
+        for i in 1:length(indices)
+            s = 1+(i>1)
+            e = size(D[i],1)-(i<length(indices))
+            @view(Dm[Block(2i-1,2i-1)]) .= @view((D[i])[s:e,s:e])
+            if i < length(indices)
+                @view(Dm[Block(2i,2i)]) .= @view((D[i])[end,end])
+                @view(Dm[Block(2i-1,2i)]) .= @view((D[i])[s:e,end])
+                @view(Dm[Block(2i,2i-1)]) .= reshape(@view((D[i])[end,s:e]), 1, length(s:e))
+            end
+            if i > 1
+                @view(Dm[Block(2i-1,2i-2)]) .= @view((D[i])[s:e,1])
+                @view(Dm[Block(2i-2,2i-1)]) .= reshape(@view((D[i])[1,s:e]), 1, length(s:e))
+            end
+            if i > 1 && i < length(indices)
+                @view(Dm[Block(2i-2,2i)]) .= @view((D[i])[1,end])
+                @view(Dm[Block(2i,2i-2)]) .= @view((D[i])[end,1])
+            end
         end
-        if i > 1
-            @view(Dm[Block(2i-1,2i-2)]) .= @view((D[i])[s:e,1])
-            @view(Dm[Block(2i-2,2i-1)]) .= reshape(@view((D[i])[1,s:e]), 1, length(s:e))
-        end
-        if i > 1 && i < length(indices)
-            @view(Dm[Block(2i-2,2i)]) .= @view((D[i])[1,end])
-            @view(Dm[Block(2i,2i-2)]) .= @view((D[i])[end,1])
-        end
-    end
 
-    Dm
+        Dm
+    else
+        BlockMap(indices,D,
+                 overlaps=:split,
+                 overlap_tol=1e-8)
+    end
 end
 
-kinop(basis::Basis) = derop(basis, 2) ./ -2
+function kinop(basis::Basis,MT=:bbm)
+    D2 = derop(basis, 2, MT)
+    if MT==:bbm
+        D2 ./= -2
+        D2
+    else
+        blocks = map(D2.blocks) do b
+            BlockMaps.Block(-0.5b.a, b.i, b.j)
+        end
+        BlockMap(size(D2)..., blocks,
+                 issymmetric(D2),
+                 ishermitian(D2),
+                 isposdef(D2),
+                 D2.overlaps,
+                 D2.overlap_tol)
+    end
+end
 
 export derop, kinop
