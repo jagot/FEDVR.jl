@@ -59,6 +59,9 @@ Return the identity matrix of `basis`.
 """
 (basis::Basis)(::UniformScaling) = Diagonal(ones(basecount(basis.grid)))
 
+locs(basis::Basis) = locs(basis.grid)
+order(basis::Basis) = order(basis.grid)
+
 function show(io::IO, basis::Basis)
     write(io, "FEDVR Basis($(basis.grid))")
 end
