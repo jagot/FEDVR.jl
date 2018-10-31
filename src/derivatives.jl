@@ -60,7 +60,33 @@ function triderop(indices, D)
     T
 end
 
-function derop(basis::Basis,o,MT=:bbm)
+function block_banded_derop(n::Integer, indices, D)
+    # TODO: Deduce rows from indices alone, i.e. n is not necessary.
+    rows = vcat(repeat([n-2,1], length(indices)-1), n-2)
+    M = sum(rows)
+    Dm = BlockBandedMatrix(Zeros(M,M), (rows,rows), (2,2))
+    for i in 1:length(indices)
+        s = 1+(i>1)
+        e = size(D[i],1)-(i<length(indices))
+        @view(Dm[Block(2i-1,2i-1)]) .= @view((D[i])[s:e,s:e])
+        if i < length(indices)
+            @view(Dm[Block(2i,2i)]) .= @view((D[i])[end,end])
+            @view(Dm[Block(2i-1,2i)]) .= @view((D[i])[s:e,end])
+            @view(Dm[Block(2i,2i-1)]) .= reshape(@view((D[i])[end,s:e]), 1, length(s:e))
+        end
+        if i > 1
+            @view(Dm[Block(2i-1,2i-2)]) .= @view((D[i])[s:e,1])
+            @view(Dm[Block(2i-2,2i-1)]) .= reshape(@view((D[i])[1,s:e]), 1, length(s:e))
+        end
+        if i > 1 && i < length(indices)
+            @view(Dm[Block(2i-2,2i)]) .= @view((D[i])[1,end])
+            @view(Dm[Block(2i,2i-2)]) .= @view((D[i])[end,1])
+        end
+    end
+    Dm
+end
+
+function derop(basis::Basis,o,MT=:bm)
     g = basis.grid
     n = order(g)
     elrange = elems(g)
@@ -89,37 +115,14 @@ function derop(basis::Basis,o,MT=:bbm)
     n == 2 && return triderop(indices, D)
 
     if MT==:bbm
-        rows = vcat(repeat([n-2,1], length(indices)-1), n-2)
-        M = sum(rows)
-        Dm = BlockBandedMatrix(Zeros(M,M), (rows,rows), (2,2))
-        for i in 1:length(indices)
-            s = 1+(i>1)
-            e = size(D[i],1)-(i<length(indices))
-            @view(Dm[Block(2i-1,2i-1)]) .= @view((D[i])[s:e,s:e])
-            if i < length(indices)
-                @view(Dm[Block(2i,2i)]) .= @view((D[i])[end,end])
-                @view(Dm[Block(2i-1,2i)]) .= @view((D[i])[s:e,end])
-                @view(Dm[Block(2i,2i-1)]) .= reshape(@view((D[i])[end,s:e]), 1, length(s:e))
-            end
-            if i > 1
-                @view(Dm[Block(2i-1,2i-2)]) .= @view((D[i])[s:e,1])
-                @view(Dm[Block(2i-2,2i-1)]) .= reshape(@view((D[i])[1,s:e]), 1, length(s:e))
-            end
-            if i > 1 && i < length(indices)
-                @view(Dm[Block(2i-2,2i)]) .= @view((D[i])[1,end])
-                @view(Dm[Block(2i,2i-2)]) .= @view((D[i])[end,1])
-            end
-        end
-
-        Dm
+        println("WARNING: BlockBandedMatrix representation of derivatives is potentially slow")
+        block_banded_derop(n, indices, D)
     else
-        BlockMap(indices,D,
-                 overlaps=:split,
-                 overlap_tol=1e-8)
+        BlockMap(indices, D, overlaps=:split, overlap_tol=1e-8)
     end
 end
 
-function kinop(basis::Basis,MT=:bbm)
+function kinop(basis::Basis,MT=:bm)
     D2 = derop(basis, 2, MT)
     if MT==:bbm
         D2 ./= -2
