@@ -1,5 +1,5 @@
 using FastGaussQuadrature
-import Base: size, show, minimum, maximum
+import Base: size, show, minimum, maximum, eltype
 
 struct Grid
     X::AbstractMatrix # Quadrature roots
@@ -95,6 +95,8 @@ end
 minimum(grid::Grid) = min(grid.X[1],grid.X[end])
 maximum(grid::Grid) = max(grid.X[1],grid.X[end])
 
+eltype(grid::Grid) = eltype(grid.X)
+
 function boundary_sel(grid::Grid, v::AbstractVector)
     if grid.bl == :dirichlet0 && grid.br == :dirichlet0
         v[2:end-1]
@@ -144,9 +146,8 @@ function find_interval(X, x, i, sel)
     a:b
 end
 
-function show(io::IO, grid::Grid)
-    write(io, "FEDVR Grid with $(elcount(grid)) elements of order $(order(grid)) [$(grid.bl),$(grid.br)]")
-end
+show(io::IO, grid::Grid) =
+    write(io, "FEDVR Grid{$(eltype(grid))} with $(elcount(grid)) elements of order $(order(grid)) [$(grid.bl),$(grid.br)]")
 
 @recipe function plot(grid::Grid)
     markershape --> :circle
