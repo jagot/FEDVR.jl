@@ -1,8 +1,8 @@
 [[BandedMatrices]]
 deps = ["FillArrays", "LazyArrays", "LinearAlgebra", "Random", "SparseArrays", "Test"]
-git-tree-sha1 = "89f5c8110f784cacec900e996e81c1389ddd62a3"
+git-tree-sha1 = "d3c8a883d5470def5f5a2b3c5b20ea5080d325e8"
 uuid = "aae01518-5342-5314-be14-df237901396f"
-version = "0.7.0"
+version = "0.7.2"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -26,10 +26,10 @@ uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 version = "0.6.0"
 
 [[BlockBandedMatrices]]
-deps = ["BandedMatrices", "BlockArrays", "Distributed", "FillArrays", "LazyArrays", "LinearAlgebra", "Pkg", "Profile", "SharedArrays", "SparseArrays", "Statistics", "Test"]
-git-tree-sha1 = "b3919df677a370cdd1975484c078938e680a82f9"
+deps = ["BandedMatrices", "BlockArrays", "Distributed", "FillArrays", "LazyArrays", "LinearAlgebra", "Pkg", "Profile", "Random", "SharedArrays", "SparseArrays", "Statistics", "Test"]
+git-tree-sha1 = "91fb4c16507ddcbc2a8d9a78c7c4cdb8148cb7e2"
 uuid = "ffab5731-97b5-5995-9138-79e8c1846df0"
-version = "0.2.0"
+version = "0.3.0"
 
 [[BlockMaps]]
 deps = ["BandedMatrices", "LinearAlgebra", "LinearMaps", "RecipesBase", "SparseArrays"]
@@ -75,9 +75,9 @@ uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [[LazyArrays]]
 deps = ["FillArrays", "LinearAlgebra", "StaticArrays", "Test"]
-git-tree-sha1 = "44fcd4f946a1e4cc302568eb6c7aba2bfc161911"
+git-tree-sha1 = "80ae09d512afe478575cadf7e301742996d0330d"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.3.1"
+version = "0.4.0"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"

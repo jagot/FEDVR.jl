@@ -2,7 +2,7 @@ using BlockBandedMatrices
 using BlockMaps
 using LinearAlgebra
 
-function der_blocks(basis::Basis, a, b)
+function der_blocks(::Type{T}, basis::Basis, a, b) where T
     (a ∉ [0,1] || b ∉ [0,1]) &&
         error("Can only calculate derivative operators of orders 0–2!")
 
@@ -17,7 +17,7 @@ function der_blocks(basis::Basis, a, b)
     fa = a == 1 ? -basis.L′ : f0 # ∂ᴴ = -∂
     fb = b == 1 ? basis.L′ : f0
 
-    d̃ = [zeros(n,n) for i = elrange]
+    d̃ = [zeros(T,n,n) for i = elrange]
     indices = Tuple{Integer,Integer}[]
     for i = elrange
         ii = (i-1)*(n-1) .+ 1
@@ -44,32 +44,34 @@ function der_blocks(basis::Basis, a, b)
     indices,d̃
 end
 
-function der_blocks(basis::Basis,o)
-    a = o ÷ 2
-    b = o - a
-    der_blocks(basis::Basis,a,b)
-end
+der_blocks(::Type{T},basis::Basis,o) where T =
+    der_blocks(T,basis::Basis,fld(o,2),cld(o,2))
 
-function triderop(indices, D)
-    tmp = Vector{eltype(D[1])}(undef, maximum(maximum.(indices)) + size(last(D),1)-1)
-    T = Tridiagonal(tmp[2:end], tmp, tmp[2:end])
+function triderop(indices, D::AbstractVector{AbstractMatrix{T}}) where T
+    tmp = Vector{T}(undef, maximum(maximum.(indices)) + size(last(D),1)-1)
+    Dm = Tridiagonal(tmp[2:end], tmp, tmp[2:end])
     for (i,d) in zip(indices,D)
         s = i[1]:i[1]+size(d,1)-1
-        @view(T[s,s]) .= d
+        @view(Dm[s,s]) .= d
     end
-    T
+    Dm
 end
 
-function block_banded_derop(n::Integer, indices, D)
-    # TODO: Deduce rows from indices alone, i.e. n is not necessary.
-    rows = vcat(repeat([n-2,1], length(indices)-1), n-2)
-    M = sum(rows)
-    Dm = BlockBandedMatrix(Zeros(M,M), (rows,rows), (2,2))
-    for i in 1:length(indices)
+function block_banded_derop(D::Vector{M}) where {T,M<:AbstractMatrix{T}}
+    rows,lu = if length(D) > 1
+        vcat([size(D[1],1)-1,1],
+             vcat([[size(D[i],1)-2,1] for i=2:length(D)-1]...),
+             size(D[end],1)-1),vcat(1,repeat([2,1],length(D)-1))
+    else
+        [size(D[1],1)],[0]
+    end
+    m = sum(rows)
+    Dm = BlockSkylineMatrix(Zeros{T}(m,m), (rows,rows), (lu,lu))
+    for i in 1:length(D)
         s = 1+(i>1)
-        e = size(D[i],1)-(i<length(indices))
+        e = size(D[i],1)-(i<length(D))
         @view(Dm[Block(2i-1,2i-1)]) .= @view((D[i])[s:e,s:e])
-        if i < length(indices)
+        if i < length(D)
             @view(Dm[Block(2i,2i)]) .= @view((D[i])[end,end])
             @view(Dm[Block(2i-1,2i)]) .= @view((D[i])[s:e,end])
             @view(Dm[Block(2i,2i-1)]) .= reshape(@view((D[i])[end,s:e]), 1, length(s:e))
@@ -78,7 +80,7 @@ function block_banded_derop(n::Integer, indices, D)
             @view(Dm[Block(2i-1,2i-2)]) .= @view((D[i])[s:e,1])
             @view(Dm[Block(2i-2,2i-1)]) .= reshape(@view((D[i])[1,s:e]), 1, length(s:e))
         end
-        if i > 1 && i < length(indices)
+        if i > 1 && i < length(D)
             @view(Dm[Block(2i-2,2i)]) .= @view((D[i])[1,end])
             @view(Dm[Block(2i,2i-2)]) .= @view((D[i])[end,1])
         end
@@ -86,12 +88,12 @@ function block_banded_derop(n::Integer, indices, D)
     Dm
 end
 
-function derop(basis::Basis,o,MT=:bm)
+function derop(::Type{T}, basis::Basis, o, MT=:bbm) where T
     g = basis.grid
     n = order(g)
     elrange = elems(g)
-    indices,d̃ = der_blocks(basis,o)
-    D = [zeros(n,n) for i = elrange]
+    indices,d̃ = der_blocks(T, basis, o)
+    D = [zeros(T,n,n) for i = elrange]
     for i = elrange
         Del = D[i]
         d̃el = d̃[i]
@@ -115,15 +117,17 @@ function derop(basis::Basis,o,MT=:bm)
     n == 2 && return triderop(indices, D)
 
     if MT==:bbm
-        println("WARNING: BlockBandedMatrix representation of derivatives is potentially slow")
-        block_banded_derop(n, indices, D)
+        block_banded_derop(D)
     else
         BlockMap(indices, D, overlaps=:split, overlap_tol=1e-8)
     end
 end
 
-function kinop(basis::Basis,MT=:bm)
-    D2 = derop(basis, 2, MT)
+derop(basis::Basis, o, MT=:bbm) =
+    derop(eltype(basis), basis, o, MT)
+
+function kinop(::Type{T}, basis::Basis,MT=:bbm) where T
+    D2 = derop(T, basis, 2, MT)
     if MT==:bbm
         D2 ./= -2
         D2
@@ -139,5 +143,6 @@ function kinop(basis::Basis,MT=:bm)
                  D2.overlap_tol)
     end
 end
+kinop(basis::Basis, MT=:bbm) = kinop(eltype(basis), basis, MT)
 
 export derop, kinop
