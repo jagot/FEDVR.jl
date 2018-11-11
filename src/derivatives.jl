@@ -1,5 +1,4 @@
 using BlockBandedMatrices
-using BlockMaps
 using LinearAlgebra
 
 function der_blocks(::Type{T}, basis::Basis, a, b) where T
@@ -88,7 +87,7 @@ function block_banded_derop(D::Vector{M}) where {T,M<:AbstractMatrix{T}}
     Dm
 end
 
-function derop(::Type{T}, basis::Basis, o, MT=:bbm) where T
+function derop(::Type{T}, basis::Basis, o) where T
     g = basis.grid
     n = order(g)
     elrange = elems(g)
@@ -116,33 +115,17 @@ function derop(::Type{T}, basis::Basis, o, MT=:bbm) where T
 
     n == 2 && return triderop(indices, D)
 
-    if MT==:bbm
-        block_banded_derop(D)
-    else
-        BlockMap(indices, D, overlaps=:split, overlap_tol=1e-8)
-    end
+    block_banded_derop(D)
 end
 
-derop(basis::Basis, o, MT=:bbm) =
-    derop(eltype(basis), basis, o, MT)
+derop(basis::Basis, o) =
+    derop(eltype(basis), basis, o)
 
-function kinop(::Type{T}, basis::Basis,MT=:bbm) where T
-    D2 = derop(T, basis, 2, MT)
-    if MT==:bbm
-        D2 ./= -2
-        D2
-    else
-        blocks = map(D2.blocks) do b
-            BlockMaps.Block(-0.5b.a, b.i, b.j)
-        end
-        BlockMap(size(D2)..., blocks,
-                 issymmetric(D2),
-                 ishermitian(D2),
-                 isposdef(D2),
-                 D2.overlaps,
-                 D2.overlap_tol)
-    end
+function kinop(::Type{T}, basis::Basis) where T
+    D2 = derop(T, basis, 2)
+    D2 ./= -2
+    D2
 end
-kinop(basis::Basis, MT=:bbm) = kinop(eltype(basis), basis, MT)
+kinop(basis::Basis) = kinop(eltype(basis), basis)
 
 export derop, kinop
