@@ -30,7 +30,7 @@ function project(fun, basis::Basis)
     # expansion coefficient.
     C[2:elcount(grid),1] += C[1:elcount(grid)-1,end]
     
-    [C[:,1:end-1]'[:]..., C[end]]
+    boundary_sel(grid, [C[:,1:end-1]'[:]..., C[end]])
 end
 
 export project

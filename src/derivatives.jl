@@ -1,7 +1,7 @@
-using BlockMaps
+using BlockBandedMatrices
 using LinearAlgebra
 
-function der_blocks(basis::Basis, a, b)
+function der_blocks(::Type{T}, basis::Basis, a, b) where T
     (a ∉ [0,1] || b ∉ [0,1]) &&
         error("Can only calculate derivative operators of orders 0–2!")
 
@@ -13,10 +13,10 @@ function der_blocks(basis::Basis, a, b)
     for i = elrange
         f0[i,:,:] = sparse(I, n, n)
     end
-    fa = a == 1 ? basis.L′ : f0
+    fa = a == 1 ? -basis.L′ : f0 # ∂ᴴ = -∂
     fb = b == 1 ? basis.L′ : f0
 
-    d̃ = [zeros(n,n) for i = elrange]
+    d̃ = [zeros(T,n,n) for i = elrange]
     indices = Tuple{Integer,Integer}[]
     for i = elrange
         ii = (i-1)*(n-1) .+ 1
@@ -43,18 +43,56 @@ function der_blocks(basis::Basis, a, b)
     indices,d̃
 end
 
-function der_blocks(basis::Basis,o)
-    a = o ÷ 2
-    b = o - a
-    der_blocks(basis::Basis,a,b)
+der_blocks(::Type{T},basis::Basis,o) where T =
+    der_blocks(T,basis::Basis,fld(o,2),cld(o,2))
+
+function triderop(indices, D::AbstractVector{AbstractMatrix{T}}) where T
+    tmp = Vector{T}(undef, maximum(maximum.(indices)) + size(last(D),1)-1)
+    Dm = Tridiagonal(tmp[2:end], tmp, tmp[2:end])
+    for (i,d) in zip(indices,D)
+        s = i[1]:i[1]+size(d,1)-1
+        @view(Dm[s,s]) .= d
+    end
+    Dm
 end
 
-function derop(basis::Basis,o)
+function block_banded_derop(D::Vector{M}) where {T,M<:AbstractMatrix{T}}
+    rows,lu = if length(D) > 1
+        vcat([size(D[1],1)-1,1],
+             vcat([[size(D[i],1)-2,1] for i=2:length(D)-1]...),
+             size(D[end],1)-1),vcat(1,repeat([2,1],length(D)-1))
+    else
+        [size(D[1],1)],[0]
+    end
+    m = sum(rows)
+    Dm = BlockSkylineMatrix(Zeros{T}(m,m), (rows,rows), (lu,lu))
+    for i in 1:length(D)
+        s = 1+(i>1)
+        e = size(D[i],1)-(i<length(D))
+        @view(Dm[Block(2i-1,2i-1)]) .= @view((D[i])[s:e,s:e])
+        if i < length(D)
+            @view(Dm[Block(2i,2i)]) .= @view((D[i])[end,end])
+            @view(Dm[Block(2i-1,2i)]) .= @view((D[i])[s:e,end])
+            @view(Dm[Block(2i,2i-1)]) .= reshape(@view((D[i])[end,s:e]), 1, length(s:e))
+        end
+        if i > 1
+            @view(Dm[Block(2i-1,2i-2)]) .= @view((D[i])[s:e,1])
+            @view(Dm[Block(2i-2,2i-1)]) .= reshape(@view((D[i])[1,s:e]), 1, length(s:e))
+        end
+        if i > 1 && i < length(D)
+            @view(Dm[Block(2i-2,2i)]) .= @view((D[i])[1,end])
+            @view(Dm[Block(2i,2i-2)]) .= @view((D[i])[end,1])
+        end
+    end
+    Dm
+end
+
+function derop(::Type{T}, basis::Basis, o) where T
     g = basis.grid
     n = order(g)
     elrange = elems(g)
-    indices,d̃ = der_blocks(basis,o)
-    D = [zeros(n,n) for i = elrange]
+    indices,d̃ = der_blocks(T, basis, o)
+    D = [zeros(T,n,n) for i = elrange]
     for i = elrange
         Del = D[i]
         d̃el = d̃[i]
@@ -75,22 +113,19 @@ function derop(basis::Basis,o)
         D[end] = D[end][1:end-1,1:end-1]
     end
 
-    BlockMap(indices,D,
-             overlaps=:split,
-             overlap_tol=1e-8)
+    n == 2 && return triderop(indices, D)
+
+    block_banded_derop(D)
 end
 
-function kinop(basis::Basis)
-    D = derop(basis, 2)
-    blocks = map(D.blocks) do b
-        BlockMaps.Block(0.5b.a, b.i, b.j)
-    end
-    BlockMap(size(D)..., blocks,
-             issymmetric(D),
-             ishermitian(D),
-             isposdef(D),
-             D.overlaps,
-             D.overlap_tol)
+derop(basis::Basis, o) =
+    derop(eltype(basis), basis, o)
+
+function kinop(::Type{T}, basis::Basis) where T
+    D2 = derop(T, basis, 2)
+    D2 ./= -2
+    D2
 end
+kinop(basis::Basis) = kinop(eltype(basis), basis)
 
 export derop, kinop

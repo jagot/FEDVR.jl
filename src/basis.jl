@@ -1,4 +1,5 @@
 using LinearAlgebra
+import Base: eltype
 
 struct Basis
     grid::Grid
@@ -59,9 +60,12 @@ Return the identity matrix of `basis`.
 """
 (basis::Basis)(::UniformScaling) = Diagonal(ones(basecount(basis.grid)))
 
-function show(io::IO, basis::Basis)
-    write(io, "FEDVR Basis($(basis.grid))")
-end
+locs(basis::Basis) = locs(basis.grid)
+order(basis::Basis) = order(basis.grid)
+
+eltype(basis::Basis) = eltype(basis.grid)
+
+show(io::IO, basis::Basis) = write(io, "FEDVR Basis($(basis.grid))")
 
 @recipe function plot(basis::Basis, n=1001)
     x = range(basis.grid.X[1,1], stop=basis.grid.X[end,end], length=n)
