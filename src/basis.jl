@@ -40,6 +40,19 @@ function evaluate!(basis::Basis, x::AbstractVector, χ::AbstractMatrix)
     χ
 end
 
+function block_structure(basis::Basis)
+    g = basis.grid
+    n = order(g)
+    elrange = elems(g)
+    if length(elrange) > 1
+        vcat([n-1-(g.bl == :dirichlet0),1],
+             vcat([[n-2,1] for i=2:length(elrange)-1]...),
+             n-1-(g.br == :dirichlet0))
+    else
+        [n]
+    end
+end
+
 function (basis::Basis)(x::AbstractVector)
     χ = spzeros(length(x),basecount(basis.grid))
     evaluate!(basis, x, χ)

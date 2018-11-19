@@ -56,14 +56,9 @@ function triderop(indices, D::AbstractVector{AbstractMatrix{T}}) where T
     Dm
 end
 
-function block_banded_derop(D::Vector{M}) where {T,M<:AbstractMatrix{T}}
-    rows,lu = if length(D) > 1
-        vcat([size(D[1],1)-1,1],
-             vcat([[size(D[i],1)-2,1] for i=2:length(D)-1]...),
-             size(D[end],1)-1),vcat(1,repeat([2,1],length(D)-1))
-    else
-        [size(D[1],1)],[0]
-    end
+function block_banded_derop(basis::Basis, D::Vector{M}) where {T,M<:AbstractMatrix{T}}
+    rows = block_structure(basis)
+    lu = length(D) > 1 ? vcat(1,repeat([2,1],length(D)-1)) : [0]
     m = sum(rows)
     Dm = BlockSkylineMatrix(Zeros{T}(m,m), (rows,rows), (lu,lu))
     for i in 1:length(D)
@@ -115,7 +110,7 @@ function derop(::Type{T}, basis::Basis, o) where T
 
     n == 2 && return triderop(indices, D)
 
-    block_banded_derop(D)
+    block_banded_derop(basis, D)
 end
 
 derop(basis::Basis, o) =
