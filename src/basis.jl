@@ -58,13 +58,31 @@ function (basis::Basis)(x::AbstractVector)
     evaluate!(basis, x, χ)
 end
 
+DiagonalBlockDiagonal(A::AbstractMatrix, (rows,cols)::Tuple) =
+    BandedBlockBandedMatrix(A, (rows,cols), (0,0), (0,0))
+
+DiagonalBlockDiagonal(A::AbstractMatrix, rows) =
+    DiagonalBlockDiagonal(A, (rows,rows))
+
 """
     basis(f)
 
 Generate the scalar operator corresponding to `f(x)` on the FEDVR
 `basis`.
 """
-(basis::Basis)(f::Function) = Diagonal(f.(locs(basis.grid)))
+(basis::Basis)(f::Function) = basis(Diagonal(f.(locs(basis.grid))))
+
+"""
+    basis(D)
+
+Generate the diagonal matrix with the appropriate block structure for
+the FEDVR `basis`.
+"""
+function (basis::Basis)(D::Diagonal)
+    n = basecount(basis)
+    @assert size(D) == (n,n)
+    DiagonalBlockDiagonal(D, block_structure(basis))
+end
 
 """
     basis(I)
