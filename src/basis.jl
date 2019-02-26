@@ -1,9 +1,9 @@
 using LinearAlgebra
 import Base: eltype
 
-struct Basis
-    grid::Grid
-    L′::AbstractArray
+struct Basis{T,U}
+    grid::Grid{T,U}
+    L′::Array{T,3}
 end
 
 function Basis(r::AbstractVector, n::Integer, args...)

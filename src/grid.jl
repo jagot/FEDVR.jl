@@ -1,12 +1,12 @@
 using FastGaussQuadrature
 import Base: size, show, minimum, maximum, eltype
 
-struct Grid
-    X::AbstractMatrix # Quadrature roots
-    W::AbstractMatrix # Quadrature weights
-    N::AbstractMatrix # Inverted weights for matrix elements
-    nel::Integer # Number of finite elements
-    n::Integer # Polynomial order of basis functions
+struct Grid{T<:Number,U<:Integer}
+    X::Matrix{T} # Quadrature roots
+    W::Matrix{T} # Quadrature weights
+    N::Matrix{T} # Inverted weights for matrix elements
+    nel::U # Number of finite elements
+    n::U # Polynomial order of basis functions
     bl::Symbol # Left boundary condition
     br::Symbol # Right boundary condition
 end
@@ -114,7 +114,7 @@ end
 
 Return locations of Gauss–Lobatto quadrature points.
 """
-locs(grid::Grid) = boundary_sel(grid, [grid.X[:,1:end-1]'[:]..., grid.X[end]])
+locs(grid::Grid) = boundary_sel(grid, [grid.X[:,1:end-1]'[:]..., grid.X[end]]::Vector{eltype(grid.X)})
 
 """
     weights(grid)
@@ -123,8 +123,8 @@ Return weights of Gauss–Lobatto quadrature points.
 """
 function weights(grid::Grid)
     bridges = grid.W[1:end-1,end] + grid.W[2:end,1]
-    wl = grid.bl == :dirichlet0 ? 0 : grid.W[1]
-    wr = grid.br == :dirichlet0 ? 0 : grid.W[end]
+    wl = grid.bl == :dirichlet0 ? zero(grid.W[1]) : grid.W[1]
+    wr = grid.br == :dirichlet0 ? zero(grid.W[1]) : grid.W[end]
     boundary_sel(grid, [wl, [grid.W[:,2:end-1] [bridges;wr]]'[:]...])
 end
 
