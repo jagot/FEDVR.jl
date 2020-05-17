@@ -2,6 +2,13 @@
 #+AUTHOR: Stefanos Carlström
 #+EMAIL: stefanos.carlstrom@gmail.com
 
+*THIS LIBRARY HAS BEEN DEPRECATED*
+
+a more structured library, with support for finite-differences and
+B-splines as well can be found at
+
+[[https://github.com/JuliaApproximation/CompactBases.jl]]
+
 [[https://travis-ci.org/jagot/FEDVR.jl][https://travis-ci.org/jagot/FEDVR.jl.svg?branch=master]]
 #+HTML: <a href="https://ci.appveyor.com/project/jagot/fedvr-jl"><img src="https://ci.appveyor.com/api/projects/status/nxei8dj3jp11vb2d?svg=true" alt="Sorry, your browser does not support SVG."/></a>
 
